@@ -178,20 +178,20 @@ Thus, traditional approaches for determining exclusive groups are not applicable
 
 \subsubsection{Research Avenues}
 
-\textbf{Discoverable Indexes:} 
+\paragraph{Discoverable Indexes:} 
 Indexes can be effectively used to catalogue the data sources present in a dataspace.
 These indexes could be deployed as services, similar to approaches like ESPRESSO~\cite{ragab2023espresso}, pointing towards available source URIs
 and potentially exposing summary statistics.
 Using such indexes to quickly determine relevant sources, LTQP engines can apply traditional federation techniques 
 to establish exclusive groups and perform source selection.
 
-\textbf{Caching:}
+\paragraph{Caching:}
 Similar to discoverable indexes, caches provide prior knowledge about the data sources present in a dataspace.
 Provided the cache maintains a degree of freshness and completeness, the query engine can perform a `simulated traversal' 
 offline over the cached data to identify relevant sources.
 Any gaps in this knowledge can then be supplemented by live traversal prior to or during execution.
 
-\textbf{Authoritativeness Assumptions:}
+\paragraph{Authoritativeness Assumptions:}
 Establishing exclusive groups in a decentralized dataspace requires a notion of \emph{source authority}~\cite{bogaerts2024distributed}.
 Under standard Link Traversal, any reachable source can assert triples about any subject
 (e.g., a third-party source asserting \texttt{<P1> foaf:knows <P2>}), creating a ``wild west'' of data where 
@@ -236,9 +236,52 @@ and STAIRs~\cite{deshpande2004lifting} are viable candidates due to their tuple-
 However, the literature provides no analysis of their performance characteristics in the context of LTQP,
 nor guidance on the design of adaptive routing strategies that determine how tuples are forwarded.
 
-\subsection{Discovery of Data in SPARQL endpoints}
+\subsection{Service Discovery in Hybrid Query Environments}
+
+A fundamental challenge in Hybrid Link Traversal Querying is the gap between resource identifiers and the aggregated services that host them.
+For standard LTQP, the reachability of data is determined by the recursive dereferencing of URIs, 
+adhering to the ``follow-your-nose'' principle where a URI identifies a resource and provides its description.
+However, SPARQL endpoints function as aggregators: they contain data about resources but do not necessarily share the resource's URI namespace,
+nor are they always explicitly linked from the resource descriptions themselves.
+Consequently, a query engine may possess a URI for a resource, but lack the URI pointing towards the SPARQL endpoint that contains that resource,
+rendering the data unreachable despite being publicly accessible.  
+
+\subsubsection{Research Avenues}
+\paragraph{Explicit Linkage Mechanisms}
+An avenue for mitigating the service discovery gap is by using explicit links between resources and their hosting endpoints. 
+This approach relies on extending the ``follow-your-nose'' principle to include service metadata within the resource description itself. 
+Existing methods such as the Vocabulary of Interlinked Datasets (VoID) can embed pointers directly in the RDF data. 
+For instance, a triple taking the form $\langle r, \texttt{void:sparqlEndpoint}, s \rangle$ allows a traversal engine to immediately identify
+that the resource $r$ is queryable via the endpoint $s$. 
+However, this relies on adoption of this approach while, for example, currently only 33\% percent of endpoints
+expose VoID descriptions~\cite{buil2013sparql}.
+
+
+\paragraph{Service Registries and Indexing.}
+Where direct linkage is absent, research directs towards the usage of external service registries and catalogs. 
+Unlike linkage-based discovery, this approach treats the mapping between URI namespaces and SPARQL endpoints as a separate knowledge base. 
+Within a dataspace, services such as ESPRESSO~\cite{ragab2023espresso} can aggregate these connections,
+effectively bridging the gap between identifiers and query services.
+However, relying on purely centralized indexes is antithetical to the goals of a decentralized dataspace. 
+Consequently, future directions should investigate distributed alternatives, 
+such as Peer-to-Peer (P2P) discovery mechanisms, to prevent the reliance on single points of failure.
+
 
 \subsection{Alternative View Deduplication}
+In dataspaces, data can be presented using multiple views describing the same data. 
+Imagine a personal data store following the Solid protocol~\cite{sambra2016solid}, this means that
+the personal data store is tree-shaped, with certain predicates linking together documents. 
+By traversing these links a LTQP engine can query over this personal data store.
+Data providers can decide to setup a SPARQL endpoint over this store, in which case a LTQP engine should use this endpoint in its query plan.
+However, discovering this endpoint is a part of the traversal process, as such it cannot be guaranteed that no hypermedia documents
+have already been dereferenced before the endpoint over those documents is discovered.
+As a result, query engine can replicate the data internally, causing duplicate results.
+
+\subsubsection{Research Avenues}
+
+
+\section{Conclusion}
+
 
 
 % Please adjust accordingly. See https://ceur-ws.org/GenAI/Policy.html
