@@ -10,6 +10,9 @@
 \usepackage{placeins}
 \usepackage{url}
 \usepackage{listings}
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{exmp}{Example}[section]
 
 \begin{document}
 
@@ -18,7 +21,7 @@
 
 \conference{The Third International Workshop on Semantics in Dataspaces, co-located with the Extended Semantic Web Conference, June 01, 2025, Portorož, Slovenia}
 
-\title{The Title of Your Contribution}
+\title{Towards Hybrid Link Traversal: Challenges and Research Directions for Heterogeneous Access Interfaces}
 
 %%
 %% The "author" command and its associated commands are used to define
@@ -45,10 +48,11 @@ email=ruben.taelman@ugent.be
 %% Keywords. The author(s) should pick words that accurately describe
 %% the work being presented. Separate the keywords with commas.
 \begin{keywords}
-  LaTeX class \sep
-  paper template \sep
-  paper formatting \sep
-  CEUR-WS
+  Link Traversal-based Query Processing \sep{}
+  Hybrid Link Traversal \sep{}
+  SPARQL \sep{}
+  Dataspaces \sep{} 
+  Query Optimization
 \end{keywords}
 
 \maketitle
@@ -56,7 +60,6 @@ email=ruben.taelman@ugent.be
 %%
 %% Reference a generic issue from the W3C Dataspaces Community Group, as described at https://dbis.rwth-aachen.de/SDS25/#submission. The author(s) must reference an existing issue in the GitHub repository, or add a new one.
 \noindent This paper addresses (\href{https://github.com/w3c-cg/dataspaces/issues/2}{Issue \#2}) of the \href{https://www.w3.org/community/dataspaces/}{W3C Dataspaces Community Group}.
-% TODO: This needs be be changed alot, is just an initial introduction written by Gemini
 \section{Introduction} 
 While centralizing data into warehouses or lakes can benefit query engine performance,
 it is antithetical to the core principles of \emph{dataspaces}.
@@ -76,7 +79,7 @@ impacts performance~\cite{padia2015attribute}, and these engines struggle to sca
 In contrast, realistic dataspace environments involve a massive number of permissioned sources 
 exposing data through highly \emph{heterogeneous interfaces}~\cite{halevy2006principles,curry2019dataspaces}. 
 Rather than a uniform layer of SPARQL endpoints, a dataspace participant may expose data via generic HTTP documents,
-constrained APIs, derived views, or specialized query services.
+constrained APIs, derived views~cite{van2024granular}, or specialized query services.
 Due to the scale and autonomy of the dataspace, the complete set of relevant sources 
 and their specific interface capabilities is possibly unknown during query time. 
 Such an environment requires a \emph{hybrid} federation approach capable of querying across diverse data interfaces
@@ -216,6 +219,7 @@ the query plan is constructed before execution and evaluated over dynamically di
 Thus, an exclusive group can only be integrated if the precomputed plan already produces an intermediate result that exactly matches 
 the triple patterns in that group.
 
+\begin{exmp}
 As an example, consider a query plan with the join structure
 \[
 (T_{1} \Join T_{2}) \Join (T_{3} \Join T_{4}).
@@ -226,6 +230,7 @@ The plan never produces an intermediate result of the form
 \(T_{2} \Join T_{3}\), since these patterns occur in different subtrees.
 As a result, the exclusive group does not fit into the existing join structure
 and cannot be pushed as a single subquery.
+\end{exmp}
 
 \subsubsection{Research Avenues}
 A clear path forward is the use of adaptive query processing techniques.
@@ -233,8 +238,50 @@ These techniques should enable low-cost plan switching without discarding interm
 as the large number of sources in a dataspace would otherwise lead to plan thrashing.
 Algorithms such as Eddies~\cite{avnur2000eddies}, SteMs~\cite{raman2003using} (as used in~\cite{hartig2016walking}),
 and STAIRs~\cite{deshpande2004lifting} are viable candidates due to their tuple-level adaptivity.
-However, the literature provides no analysis of their performance characteristics in the context of LTQP,
-nor guidance on the design of adaptive routing strategies that determine how tuples are forwarded.
+
+Despite their potential, the literature lacks a comprehensive analysis of adaptive frameworks within the context of LTQP.
+Specifically, there is little guidance on designing routing strategies, the logic determining how tuples are forwarded between operators,
+or the overhead costs associated with each.
+
+\textbf{Eddies} offer a constrained form of adaptivity. 
+In this model, the join operators are instantiated at the start of the query;
+the engine only adapts the \textit{order} in which tuples visit these operators. 
+Because these join operators (e.g., Symmetric Hash Joins) accumulate internal state as they process data,
+the engine is effectively locked into the existing operator instances.
+
+\begin{exmp}
+Consider a query with triple patterns $\{T_1, T_2, T_3, T_4\}$. 
+If an Eddy starts by routing results from $T_1 \bowtie T_2$, the join state is physically stored within that specific operator's hash tables. 
+If the engine later discovers that $T_2 \bowtie T_3$ is more selective due to newly traversed data,
+it can change the routing sequence, but it cannot easily dissolve the $T_1 \bowtie T_2$ state to form a $T_2 \bowtie T_3$ join 
+without significant re-initialization overhead.
+\end{exmp}
+
+In contrast, \textbf{SteMs} (State Modules) decouple state from the join operation entirely. 
+Since SteMs do not hold fixed join states, any tuple can be routed to any SteM in any order. 
+However, this flexibility introduces a \textit{recomputation tax}: if a SteM is probed before its join partners have arrived,
+the intermediate result is not captured and must be re-derived once more data is discovered via traversal.
+
+Finally, \textbf{STAIRs} (Storage, Transformation and Access for Intermediate Results) attempt to bridge this gap through state migration. 
+This allows a query engine to physically move join states between different operator instances. 
+While this maximizes flexibility, state migration is a resource-intensive operation. 
+Determining the optimal threshold for migration, and the number of required migrations to incorporate the diverse precomputed sub-queries discovered
+during traversal is an open challenge.
+
+% However, the literature provides no analysis of their performance characteristics in the context of LTQP,
+% nor guidance on the design of adaptive routing strategies that determine how tuples are forwarded.
+% Furthermore, the cost of adaptivity per approach is variable.
+% Eddies are more rigid in what plans can be executed, as join operators are defined beforehand, and only the order of operators 
+% is adaptive. 
+% The execution of the initial plan of an Eddies approach accumulates join states, thus not all query plans can be switched to adaptively.
+% TODO example
+% In contrast, SteMs have no accumulated join states, any tuple can be routed in any order.
+% However, this means that during query execution, intermediate results get dropped when not all data is available, and must be recomputed
+% when more data becomes available.
+% Finally, STAIRs attempt to solve both limitations by allow state migration, this allows a STAIRs query engine to transfer join states,
+% to different operators.
+% This increases flexibility and adaptiveness of the engine, however the migration of states is a costly operator, and determining when tool
+% migrate is not straightforward.
 
 \subsection{Service Discovery in Hybrid Query Environments}
 
@@ -268,20 +315,73 @@ such as Peer-to-Peer (P2P) discovery mechanisms, to prevent the reliance on sing
 
 
 \subsection{Alternative View Deduplication}
-In dataspaces, data can be presented using multiple views describing the same data. 
-Imagine a personal data store following the Solid protocol~\cite{sambra2016solid}, this means that
-the personal data store is tree-shaped, with certain predicates linking together documents. 
-By traversing these links a LTQP engine can query over this personal data store.
-Data providers can decide to setup a SPARQL endpoint over this store, in which case a LTQP engine should use this endpoint in its query plan.
-However, discovering this endpoint is a part of the traversal process, as such it cannot be guaranteed that no hypermedia documents
-have already been dereferenced before the endpoint over those documents is discovered.
-As a result, query engine can replicate the data internally, causing duplicate results.
+In decentralized dataspaces, a single dataset can often be accessed through multiple architectural views.
+Consider a personal data store (PDS) following the Solid protocol~\cite{sambra2016solid}.
+Here, data is structured as a hierarchical resource tree where documents are interconnected via RDF predicates.
+A Link Traversal Query Processing (LTQP) engine navigates this store by dereferencing these URIs on-the-fly.
+
+Data providers may also expose a SPARQL endpoint over the same PDS to improve query efficiency.
+Ideally, an LTQP engine should incorporate this endpoint into its query plan.
+However, because endpoint discovery is itself a byproduct of the traversal process, 
+an engine may dereference several hypermedia documents before it encounters the metadata pointing to the endpoint.
+
+This creates a synchronization problem: the engine ingests the same data from two different interfaces,
+leading to duplicated results and wasted computational resources.
+In the specific context of Solid, a client might assume that any (public) URI sharing the Pod's root namespace is covered by the discovered endpoint.
+However, in general dataspace environments, this assumption is often unsubstantiated;
+alternative views may only cover specific subsets of data, such as historical archives versus high-frequency data.
+
 
 \subsubsection{Research Avenues}
 
+\paragraph{View Overlap Detection}
+To determine an appropriate deduplication strategy,
+a query engine must first assess the data coverage of the discovered access interfaces.
+One approach from the literature involves issuing queries to both the local data store
+and the remote endpoint to calculate \emph{coherence}~\cite{umbrich2012hybrid}, a metric indicating the extent to which the two sources agree.
+However, this method is restricted to queryable interfaces and incurs significant overhead,
+as each coherence check requires additional HTTP requests.
+An alternative is to rely on server-side metadata that explicitly denotes which underlying resources a given access interface aggregates.
+Unfortunately, this relies heavily on the widespread adoption of specific metadata vocabularies by data providers,
+which cannot easily be guaranteed in a decentralized, autonomous dataspace.
+
+\paragraph{Client-Side Deduplication}
+Regardless of whether the data coverage of discovered access interfaces is known,
+the query engine must perform deduplication on the client side.
+This requires tracking the \emph{provenance} (i.e., the source) of bindings during query processing
+to filter out duplicates based on the computed or assumed coverage of alternative interfaces.
+A naive approach is to maintain a ``seen'' set of previously produced bindings for each triple pattern,
+discarding any newly discovered matches that already exist in the set.
+However, retaining a complete history of bindings is highly memory-intensive and scales poorly for large queries.
+While probabilistic data structures like Bloom filters can drastically reduce this memory footprint,
+their inherent false-positive rates risk accidentally discarding unique, valid results.
+
+If the engine knows which sources are covered by an alternative access interface, it can attempt further optimizations.
+First, upon discovering the interface, any relevant links that have been discovered but not yet dereferenced can be pruned from the traversal queue.
+Second, the engine can better manage the lifecycle of the ``seen'' sets.
+Once the engine can guarantee that all data capable of producing duplicate results has been processed,
+the associated ``seen'' sets can be safely discarded to free memory.
+However, the mechanism for reliably detecting this point during execution remains an open research area.
 
 \section{Conclusion}
+%TODO: Improve this a lot, I'm not sure I like just enumerating what I already talked about
+Hybrid querying over heterogeneous sources has the potential to significantly reduce query latency and network overhead,
+by combining the dynamic discovery of link traversal with the computational efficiency of expressive interfaces like SPARQL endpoints,
 
+However, as outlined in this paper, realizing a fully functional Hybrid LTQP engine introduces substantial technical hurdles.
+The unbounded nature of the web makes it difficult to establish exclusive groups for safe sub-query delegation without relying on prior knowledge,
+discoverable indexes, or strict authoritativeness assumptions.
+Furthermore, query engines must adopt highly adaptive processing techniques to seamlessly integrate dynamically discovered materialized sub-queries
+without thrashing the query plan or losing intermediate results.
+We also highlight the ongoing need for robust service discovery mechanisms to bridge the gap between resource identifiers
+and the endpoints aggregating them.
+Finally, we identify a challenge with alternative views and the inherent risk of result duplication due to them and identify 
+two reseach directions for this challenge.
+
+Ultimately, transitioning from a ``lowest common denominato'' traversal strategy to a fully hybrid approach is essential 
+to leverage the diverse access interface expected in dataspaces.
+Addressing these open research avenues will be critical in developing query engines capable of scaling 
+to the realistic demands of a decentralized data ecosystem.
 
 
 % Please adjust accordingly. See https://ceur-ws.org/GenAI/Policy.html
