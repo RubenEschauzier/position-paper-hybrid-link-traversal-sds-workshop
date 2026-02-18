@@ -1,1 +1,19 @@
-Some cool abstract goes here!
+Decentralized dataspaces preserve data sovereignty by keeping data at its source,
+but querying thousands of autonomous sources with heterogeneous interfaces introduces significant challenges.
+% Need: Why something needed to be done at all
+Traditional federated engines fail to scale to this size, and existing Link Traversal-based Query Processing (LTQP) systems treat all sources uniformly.
+By ignoring the (query) capabilities of expressive interfaces, such as SPARQL endpoints,
+current LTQP engines suffer performance issues.
+% Task: What was undertaken to address the need
+To address this, we advocate for Hybrid LTQP, an execution strategy that combines the dynamic runtime discovery of link traversal
+with the performance benefits of delegating complex sub-queries to capable server-side interfaces.
+% Object: What the present document does or covers
+This paper reviews the state-of-the-art in hybrid traversal and identifies the critical challenges hindering its implementation:
+establishing exclusive groups without prior knowledge, integrating dynamic sub-queries into active query plans, enabling reliable service discovery,
+and deduplicating alternative architectural views.
+% Conclusion: What the findings mean for the audience
+Solving the challenges identified in this paper is a strict prerequisite
+for making hybrid decentralized querying practically viable across heterogeneous dataspaces.
+% Perspectives: What the future holds, beyond this work
+Consequently, future research must prioritize these open problems to engineer the next generation of scalable,
+interface-aware LTQP query engines.

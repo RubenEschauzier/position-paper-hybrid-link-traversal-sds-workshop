@@ -41,8 +41,26 @@ email=ruben.taelman@ugent.be
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-  Some cool abstract goes here!
-\end{abstract}
+% Context: Why the need is so pressing or important
+Decentralized dataspaces preserve data sovereignty by keeping data at its source, 
+but querying thousands of autonomous sources with heterogeneous interfaces introduces significant challenges. 
+% Need: Why something needed to be done at all
+Traditional federated engines fail to scale to this size, and existing Link Traversal-based Query Processing (LTQP) systems treat all sources uniformly.
+By ignoring the (query) capabilities of expressive interfaces, such as SPARQL endpoints,
+current LTQP engines suffer performance issues. 
+% Task: What was undertaken to address the need
+To address this, we advocate for Hybrid LTQP, an execution strategy that combines the dynamic runtime discovery of link traversal
+with the performance benefits of delegating complex sub-queries to capable server-side interfaces. 
+% Object: What the present document does or covers
+This paper reviews the state-of-the-art in hybrid traversal and identifies the critical challenges hindering its implementation:
+establishing exclusive groups without prior knowledge, integrating dynamic sub-queries into active query plans, enabling reliable service discovery,
+and deduplicating alternative architectural views. 
+% Conclusion: What the findings mean for the audience
+Solving the challenges identified in this paper is a strict prerequisite 
+for making hybrid decentralized querying practically viable across heterogeneous dataspaces. 
+% Perspectives: What the future holds, beyond this work
+Consequently, future research must prioritize these open problems to engineer the next generation of scalable, 
+interface-aware LTQP query engines.\end{abstract}
 
 %%
 %% Keywords. The author(s) should pick words that accurately describe
@@ -268,21 +286,6 @@ While this maximizes flexibility, state migration is a resource-intensive operat
 Determining the optimal threshold for migration, and the number of required migrations to incorporate the diverse precomputed sub-queries discovered
 during traversal is an open challenge.
 
-% However, the literature provides no analysis of their performance characteristics in the context of LTQP,
-% nor guidance on the design of adaptive routing strategies that determine how tuples are forwarded.
-% Furthermore, the cost of adaptivity per approach is variable.
-% Eddies are more rigid in what plans can be executed, as join operators are defined beforehand, and only the order of operators 
-% is adaptive. 
-% The execution of the initial plan of an Eddies approach accumulates join states, thus not all query plans can be switched to adaptively.
-% TODO example
-% In contrast, SteMs have no accumulated join states, any tuple can be routed in any order.
-% However, this means that during query execution, intermediate results get dropped when not all data is available, and must be recomputed
-% when more data becomes available.
-% Finally, STAIRs attempt to solve both limitations by allow state migration, this allows a STAIRs query engine to transfer join states,
-% to different operators.
-% This increases flexibility and adaptiveness of the engine, however the migration of states is a costly operator, and determining when tool
-% migrate is not straightforward.
-
 \subsection{Service Discovery in Hybrid Query Environments}
 
 A fundamental challenge in Hybrid Link Traversal Querying is the gap between resource identifiers and the aggregated services that host them.
@@ -364,7 +367,7 @@ the associated ``seen'' sets can be safely discarded to free memory.
 However, the mechanism for reliably detecting this point during execution remains an open research area.
 
 \section{Conclusion}
-%TODO: Improve this a lot, I'm not sure I like just enumerating what I already talked about
+%TODO: Improve this a lot? I'm not sure I like just enumerating what I already talked about
 Hybrid querying over heterogeneous sources has the potential to significantly reduce query latency and network overhead,
 by combining the dynamic discovery of link traversal with the computational efficiency of expressive interfaces like SPARQL endpoints,
 
@@ -389,10 +392,10 @@ to the realistic demands of a decentralized data ecosystem.
 %% in Janary 2025. See also
 %% https://ceur-ws.org/GenAI/Policy.html
 \section*{Declaration on Generative AI}
-  %The author(s) have not employed any Generative AI tools.
+%The author(s) have not employed any Generative AI tools.
  
-  % Use the activity taxonomy in ceur-ws.org/genai-tax.html
-  During the writing of this paper, the author(s) used DeepL and GPT-4o in order to: Grammar, translation and spelling check. After using these tool(s)/service(s), the author(s) reviewed and edited the content as needed and take(s) full responsibility for the publication’s content.
+% Use the activity taxonomy in ceur-ws.org/genai-tax.html
+During the writing of this paper, the author(s) used Gemini in order to: Sentence Polishing, Rephrasing, and Text Creation. After using these tool(s)/service(s), the author(s) reviewed and edited the content as needed and take(s) full responsibility for the publication’s content.
 
 %%
 %% Define the bibliography file to be used
