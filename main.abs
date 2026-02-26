@@ -1,7 +1,7 @@
 Decentralized dataspaces preserve data sovereignty by keeping data at its source,
-but querying thousands of autonomous sources with heterogeneous interfaces introduces significant challenges.
+but querying a large number of autonomous sources with heterogeneous interfaces introduces significant challenges.
 % Need: Why something needed to be done at all
-Traditional federated engines fail to scale to this size, and existing Link Traversal-based Query Processing (LTQP) systems treat all sources uniformly.
+Traditional federated engines fail to scale to this size, while existing Link Traversal-based Query Processing (LTQP) systems can only handle Linked Data documents.
 By ignoring the (query) capabilities of expressive interfaces, such as SPARQL endpoints,
 current LTQP engines suffer performance issues.
 % Task: What was undertaken to address the need
