@@ -157,30 +157,42 @@ In contrast, our work employs a strictly live-traversal process, redefining the 
 
 \subsection{Hybrid Traversal - Local vs Remote}
 
-A branch of hybrid link traversal querying uses precomputed indexes, either located within the decentralized environment or computed locally to
-speed-up query execution or source discovery. The first of such approaches, 
-uses precomputed indexes to rerank sources based on relevance to the query's triple pattern and joins.
-and retrieves them to execute queries over.~\cite{ladwig2010linked}. Other works~\cite{sabri2015hybrid} propose to cache information on sources to
-help in prioritization of sources.
+A branch of hybrid link traversal querying uses precomputed indexes,
+either located within the decentralized environment or computed locally,
+to speed up query execution or source discovery.
+The first of such approaches uses precomputed indexes to rerank sources based on relevance to the query's triple patterns and joins,
+retrieving them to execute queries~\cite{ladwig2010linked}.
+Other works~\cite{sabri2015hybrid} propose caching information on sources to help prioritize them.
 
 Another approach is to store entire RDF graphs in local stores to quickly execute parts of the query.
-For this approach, non-blocking indexed-based operators~\cite{ladwig2011sihjoin} are used to leverage the locally computed indexes for faster
-query execution.
+As a result, non-blocking index-based operators~\cite{ladwig2011sihjoin}
+can be used to leverage the locally computed indexes for faster query execution.
 
-A major limitation is the freshness of the data in the store, which can quickly go stale for high velocity data sources.
-Various methods, like freshness (or coherence)-aware query processing exist~\cite{umbrich2012hybrid}. 
-An alternative approach, and the one closest to our definition,
-is a hybrid method that executes a federated query over known SPARQL endpoints concurrently
-with traversal-based query processing over URIs~\cite{lynden2013hybrid}.
+A major limitation is the freshness of the data in the store and indexes,
+which can quickly go stale for high-velocity data sources.
+In addition, these preliminary works deviate from our definition of hybrid LTQP,
+as they rely solely on Linked Data Document-centric traversal to populate local caches or use decentralized indexes only to optimize
+the Linked Data Document-based traversal process.
+
+\subsection{Hybrid Traversal - Multiple Processes}
+
+The methods in the literature falling within our definition of hybrid traversal
+use two separate query processes to obtain data from heterogeneous sources.
+First, coherence-aware query processing uses a centralized store to obtain initial query results quickly.
+Using a method called coherence estimation, it determines which data from this store is likely stale.
+The stale data is then discovered and queried using the traversal-based second process during query execution.
+Finally, the results are combined to provide the query answer.
+
+A second approach is a hybrid method that executes a federated query over known SPARQL endpoints concurrently with traversal-based query processing
+over URIs~\cite{lynden2013hybrid}.
 While this mitigates the issue of data freshness by querying sources at runtime rather than relying on static indexes,
 it requires the relevant SPARQL endpoints to be configured prior to query execution.
 Consequently, the system cannot utilize new SPARQL endpoints discovered during the traversal process.
 
-
 \subsection{Hybrid Traversal - Closed Systems}
 
 Other approaches integrate into the dataspace itself. ESPRESSO~\cite{ragab2023espresso} is such an approach, 
-it is a framework around the Solid dataspace specifically that defines several apps in the dataspace to perform certain \(optimization\) tasks.
+it is a framework around the Solid dataspace specifically that defines several apps in the dataspace to perform certain (optimization) tasks.
 In the Solid environment, data is stored into personal data vaults. These vaults use the Linked Data Platform~\cite{ldp} to arrange the data into a folder-like
 structure.
 To avoid traversing the entire pod to query it, ESPRESSO uses the \textit{Brewmaster} application to locally create indexes of the pod 
@@ -191,14 +203,14 @@ where each Solid server is mapped to a federated database node in the overlay ne
 Unlike approaches based on link traversal or service discovery within Solid, 
 ESPRESSO relies on an explicitly configured overlay network, 
 with no mechanism for dynamically discovering participating servers or query endpoints.
-Futhermore, currently ESPRESSO only supports distributed keyword-based search, it does not support SPARQL queries over the sources.
+Furthermore, currently ESPRESSO only supports distributed keyword-based search, it does not support SPARQL queries over the sources.
 
 While these approaches do hybrid link traversal, they significantly deviate from our interpretation of hybrid traversal.
-This in contrast to the setting described in this paper where the discovered sources themselves are heterogeneous, serendiptiously discovered, 
+This is in contrast to the setting described in this paper where the discovered sources themselves are heterogeneous, serendipitously discovered, 
 and cannot be assumed to be present for every source within the dataspace. 
 
 \subsection{Hybrid Link Traversal over Heterogeneous Sources}
-State-of-the-art LTQP engines, most notably Comunica-link-traversal~\cite{taelman2018comunica, taelman2023link}, demonstrate hybrid capabilities by dynamically federating 
+State-of-the-art LTQP engines, most notably Comunica Link Traversal~\cite{taelman2018comunica, taelman2023link}, demonstrate hybrid capabilities by dynamically federating 
 over discovered SPARQL endpoints, TPF interfaces, and hypermedia documents.
 However, these systems are currently limited by a triple pattern level-only strategy: they fail
 to leverage the full expressivity of sophisticated interfaces.
@@ -206,7 +218,7 @@ For instance, upon discovering a SPARQL endpoint, existing engines restrict inte
 sending sub-queries.
 
 This often results in the client retrieving high volumes of intermediate results for performing local joins,
-and effectively negates the optimization and latency benefits of more expressive server-side execution.
+reducing the optimization and latency benefits of more expressive server-side execution.
 
 \section{Challenges with Hybrid Link Traversal}
 In this section, we will outline specific identified problems with hybrid link traversal making implementation difficult.
