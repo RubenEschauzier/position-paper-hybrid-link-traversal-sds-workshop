@@ -69,7 +69,7 @@
   <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/"> 
    <dc:format>application/pdf</dc:format> 
    <dc:type><rdf:Bag><rdf:li>journal</rdf:li></rdf:Bag></dc:type>
-   <dc:title><rdf:Alt><rdf:li xml:lang="x-default">Towards Hybrid Link Traversal: Challenges and Research Directions for Heterogeneous Access Interfaces</rdf:li></rdf:Alt></dc:title>
+   <dc:title><rdf:Alt><rdf:li xml:lang="x-default">Towards Hybrid Link Traversal: Challenges and Research Directions for Heterogeneous Dataspaces</rdf:li></rdf:Alt></dc:title>
    <dc:creator><rdf:Seq><rdf:li>Ruben Eschauzier</rdf:li>
      <rdf:li>Ruben Taelman</rdf:li></rdf:Seq></dc:creator>
    <dc:rights><rdf:Alt><rdf:li xml:lang="x-default">© 2025 Copyright for this paper by its authors. Use permitted under Creative Commons License Attribution 4.0 International (CC BY 4.0).</rdf:li></rdf:Alt></dc:rights>
@@ -92,9 +92,9 @@
   </rdf:Description> 
   <rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/"> 
    <xmp:CreatorTool>LaTeX with hyperref</xmp:CreatorTool> 
-   <xmp:ModifyDate>2026-02-26T07:56:05+01:00</xmp:ModifyDate> 
-   <xmp:CreateDate>2026-02-26T07:56:05+01:00</xmp:CreateDate> 
-   <xmp:MetadataDate>2026-02-26T07:56:05+01:00</xmp:MetadataDate> 
+   <xmp:ModifyDate>2026-02-26T14:13:06+01:00</xmp:ModifyDate> 
+   <xmp:CreateDate>2026-02-26T14:13:06+01:00</xmp:CreateDate> 
+   <xmp:MetadataDate>2026-02-26T14:13:06+01:00</xmp:MetadataDate> 
   </rdf:Description> 
   <rdf:Description rdf:about="" xmlns:xmpRights = "http://ns.adobe.com/xap/1.0/rights/"> 
    <xmpRights:Marked>True</xmpRights:Marked>
@@ -103,7 +103,7 @@
   </rdf:Description> 
   <rdf:Description rdf:about="" xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/"> 
    <xmpMM:DocumentID>uuid:DF005B57-2A06-8753-7167-92D8CE935460</xmpMM:DocumentID> 
-   <xmpMM:InstanceID>uuid:1DD59522-106A-45D7-A586-A04305215398</xmpMM:InstanceID> 
+   <xmpMM:InstanceID>uuid:8B0AE497-C036-E333-6888-B9B3C63F3500</xmpMM:InstanceID> 
   </rdf:Description> 
  </rdf:RDF> 
 </x:xmpmeta> 
