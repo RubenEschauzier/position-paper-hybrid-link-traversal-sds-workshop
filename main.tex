@@ -236,8 +236,9 @@ If a query engine cannot verify that a group of patterns belongs \emph{exclusive
 it cannot safely dispatch them as a conjunctive sub-query (BGP).
 Doing so risks \emph{incomplete results} because the endpoint will execute a server-side join.
 If the endpoint lacks data for one of the patterns, or if valid join partners reside on a different server,
-the server-side join execution will filter out bindings that could have been successfully joined with data from another source.
-Thus, the exclusive grouping strategy fails to produce the valid distributed join results.\rt{This last sentence seems incorrect.}
+the server-side join execution will filter out intermediary results that could have been successfully joined with data from another source.
+Thus, to guarantee complete results, a query engine must only delegate conjunctive sub-queries when it can guarantee 
+this sub-query forms an exclusive group.
 
 Federation engines like \emph{FedX}~\cite{schwarte2011fedx}, \emph{HiBISCuS}~\cite{saleem2014hibiscus},
 Comunica~\cite{taelman2018comunica}, and \emph{FedUp}~\cite{aimonier2024fedup}
@@ -245,7 +246,7 @@ rely on either prior knowledge on the content of the federation members, or issu
 
 For Hybrid Link Traversal to use SPARQL endpoints to compute joins locally, the engine should also identify exclusive groups.
 The problem is the unbounded nature of LTQP~\cite{hartig2012foundations}. As during LTQP the query engine does not have access to
-all sources it will query over, exclusive groups can never be established.\rt{Well, maybe they could be, but at least they can not be established in the same way as in federation in traditional (non-adaptive) query planning.}
+all sources it will query over, exclusive groups can never be established using traditional federated query approaches.
 Even if we move to a finite web~\cite{hartig2012foundations}, the engine would have to first traverse all reachable~\cite{hartig2012foundations}
 sources before exclusive groups can be determined.
 This is antithetical to the streaming nature of LTQP engines~\cite{taelman2018comunica, hartig2013squin} and will delay time to first result.
@@ -260,17 +261,20 @@ Indexes can be effectively used to catalogue the data sources present in a datas
 These indexes could be deployed as services, similar to approaches like ESPRESSO~\cite{ragab2023espresso}, pointing towards available source URIs
 and potentially exposing summary statistics.
 Using such indexes to quickly determine relevant sources, LTQP engines can apply traditional federation techniques 
-to establish exclusive groups and perform source selection.\rt{But it's not really link traversal anymore then, right? (which is fine) But maybe make it explicit, that the problem can then become a pure federation problem.}
+to establish exclusive groups and perform source selection.
+This would move the problem from traversal to federation, however new challenges such as index completeness and maintenance would arise
 
 \paragraph{Caching:}
 Similar to discoverable indexes, caches provide prior knowledge about the data sources present in a dataspace.
 Provided the cache maintains a degree of freshness and completeness, the query engine can perform a `simulated traversal' 
 offline over the cached data to identify relevant sources.
-Any gaps in this knowledge can then be supplemented by live traversal prior to or during execution.
-\rt{There are some important issues here that are not mentioned yet.
-Caches can only be used for determining exclusive groups if we can guarantee that it is "complete" with respect to the current query.
-This is for example not always the case if we're executing different queries.
-And if freshness can not be guaranteed, then we can not ensure correctness of the exclusive group.}
+Any gaps in this knowledge can then be supplemented by live traversal prior to or during execution
+
+The challenge is determining when a cache is ``complete'' for the current query,
+as missing or stale data can affect the correctness of identified exclusive groups.
+For example, if the cached data originates from a different query,
+the cached traversal may differ because URI reachability~\cite{hartig2012foundations} depends on the current query's content.
+Consequently, the cached view may omit URIs that were unreachable during the previous query.
 
 \paragraph{Authoritativeness Assumptions:}
 Establishing exclusive groups in a decentralized dataspace could be achieved through the notion of \emph{source authority}~\cite{bogaerts2024distributed}.
@@ -283,20 +287,21 @@ This lack of authority prevents the query engine from determining if a set of pa
 A possible solution is restricting the scope of validity such that a data source is the \emph{sole authority} 
 for triples where the subject corresponds to the source's own URI (or a URI within its controlled namespace).
 By enforcing this \emph{Subject Authority Constraint}, the query engine can 
-statically determine that all triples matching \texttt{<SourceA> ?p ?o}\rt{In a footnote, mention that also fragments on this URL should be considered} reside exclusively at \emph{Source A}.
+statically determine that all triples matching \texttt{<SourceA/posts/post1> ?p ?o} reside exclusively at \emph{Source A}
+\footnote{This includes fragments of the URI}.
 This allows the engine to safely treat such patterns as an exclusive group, 
 enabling the delegation of complex sub-queries (e.g., BGPs) to hybrid sources like SPARQL endpoints without the risk of incomplete results.
 
 \subsection{Integrating Dynamically Delegated Sub-queries into the Query Plan}
-When exclusive groups are identified and subqueries are dynamically pushed to expressive server-side interfaces,
-the resulting intermediate results must fit into the existing query plan.\rt{This sentence is a bit oddly phrases. I'd move it after the next sentence, and just make it say that exclusive groups can currently only be identified during query planning.}
-
-In the traditional optimize-then-execute approach,
+In the traditional optimize-then-execute approach, 
 used by Comunica-link-traversal~\cite{taelman2018comunica,taelman2023link} and SQUIN~\cite{hartig2013squin} (except in~\cite{hartig2016walking}),
 the query plan is constructed before execution and evaluated over dynamically discovered sources.
 
-Thus, an exclusive group can only be integrated if the precomputed plan already produces an intermediate result that exactly matches 
-the triple patterns in that group.\rt{I don't really understand this sentence.}
+However, exclusive groups are only identified during query execution,
+when expressive interfaces such as SPARQL endpoints are discovered through link traversal.
+
+Because the execution plan is already fixed,
+integrating an exclusive group from a newly discovered interface requires dynamically transforming the plan to accommodate the subquery.
 
 \begin{exmp}
 As an example, consider a query plan with the join structure
@@ -308,19 +313,34 @@ If the engine discovers an exclusive group consisting of the triple patterns
 The plan never produces an intermediate result of the form
 \(T_{2} \Join T_{3}\), since these patterns occur in different subtrees.
 As a result, the exclusive group does not fit into the existing join structure
-and cannot be pushed as a single subquery.\rt{Ah. Now I understand what you mean. Still, I find it a weird way to explain it. I would suggest explaining it as the need for adaptively modifying the query plan as soon as an exclusive group has been identified, which may lead to branches of the plan being cut off, and joins branche being transformed. (similar to your example, maybe you could show a before/after plan once an exclusive group has been identified.)}
+and cannot be pushed as a single subquery.
+However, if the plan is reordered to
+\[
+(T_{2} \Join T_{3}) \Join (T_{1} \Join T_{4}),
+\]
+this group can be integrated, allowing the sub-query \(\{T_{2}, T_{3}\}\) to be sent to the appropriate data sources.
 \end{exmp}
 
 \subsubsection{Research Avenues}
-A clear path forward is the use of adaptive query processing techniques.
-These techniques should enable low-cost plan switching without discarding intermediate results,
-as the large number of sources in a dataspace would otherwise lead to plan thrashing.
-Algorithms such as Eddies~\cite{avnur2000eddies}, SteMs~\cite{raman2003using} (as used in~\cite{hartig2016walking}),
+Adaptive query processing offers a clear path forward. 
+It enables low-cost plan switching without discarding intermediate results,
+preventing plan thrashing caused by the large number of sources in a dataspace.
+Algorithms such as Eddies~\cite{avnur2000eddies}, SteMs~\cite{raman2003using} (used in~\cite{hartig2016walking}),
 and STAIRs~\cite{deshpande2004lifting} are viable candidates due to their tuple-level adaptivity.
 
-Despite their potential, the literature lacks a comprehensive analysis of adaptive frameworks within the context of LTQP\rt{Well, there's Olaf's walking without a map paper, which surely must be mentioned here, and also Jonni's paper.}.
-Specifically, there is little guidance on designing routing strategies, the logic determining how tuples are forwarded between operators,
-or the overhead costs associated with each.
+However, the literature lacks a comprehensive analysis of these adaptive frameworks within LTQP.
+Specifically, there is little guidance on designing routing strategies,
+the logic for forwarding tuples between operators, and assessing their overhead costs.
+
+Despite this gap, two works are relevant. 
+The first~\cite{hartig2016walking} uses tuple-level routing combined with adaptive URI prioritization.
+However, they evaluate the performance of the URI prioritization and do not present the performance difference of using tuple-level routing instead
+of a fixed query plan.
+As prioritization performs poorly in Solid dataspaces~\cite{eschauzier2025revisiting}, these findings lack direct relevance.
+The second approach~\cite{hanski2025link} uses join restarts to improve query performance.
+However, if two sources admit incompatible exclusive groups, restarting the join cannot accommodate both.
+
+Given the limitations of these prior works, future research should investigate the use of tuple-level adaptive query processing techniques.
 
 \textbf{Eddies} offer a constrained form of adaptivity. 
 In this model, the join operators are instantiated at the start of the query;
@@ -354,8 +374,15 @@ For standard LTQP, the reachability of data is determined by the recursive deref
 adhering to the ``follow-your-nose'' principle where a URI identifies a resource and provides its description.
 However, SPARQL endpoints function as aggregators: they contain data about resources but do not necessarily share the resource's URI namespace,
 nor are they always explicitly linked from the resource descriptions themselves.
-Consequently, a query engine may possess a URI for a resource, but lack the URI pointing towards the SPARQL endpoint that contains that resource,
-rendering the data unreachable despite being publicly accessible.\rt{I don't understand this last sentence that well. Could you rephrase? Or even rephrase with an example?}  
+Consequently, a query engine may possess a URI for resource A,
+even though the resource itself is only accessible via a SPARQL endpoint at a different URI\@. 
+Because of this decoupling, the engine cannot rely on the ``follow-your-nose'' principle to dereference resource A directly; 
+it must discover the relevant endpoint instead.
+For example, an engine might encounter the URI \texttt{https://alice.example/posts/1} representing a social media post. 
+Dereferencing this URI directly yields no RDF data. 
+Instead, all data regarding Alice's posts resides exclusively in a SPARQL endpoint located at a different URI,
+such as \texttt{https://alice.example.org/posts/sparql}. 
+Because the resource and endpoint URIs are decoupled, standard link traversal fails to retrieve the data.
 
 \subsubsection{Research Avenues}
 \paragraph{Explicit Linkage Mechanisms}
@@ -363,13 +390,15 @@ An avenue for mitigating the service discovery gap is by using explicit links be
 This approach relies on extending the ``follow-your-nose'' principle to include service metadata within the resource description itself. 
 Existing methods such as the Vocabulary of Interlinked Datasets (VoID) can embed pointers directly in the RDF data. 
 For instance, a triple taking the form $\langle r, \texttt{void:sparqlEndpoint}, s \rangle$ allows a traversal engine to immediately identify
-that the resource $r$ is queryable via the endpoint $s$. \rt{Does void:sparqlEndpoint allow regexes? In any case, we should mention something about generic patterns, as listing \textbf{all} resources may be unfeasible.}
+that the resource $r$ is queryable via the endpoint $s$. 
 However, this relies on adoption of this approach while, for example, currently only 33\% percent of endpoints
 expose VoID descriptions~\cite{buil2013sparql}.
-
+Furthermore, generating individual triples for every term may be infeasible.
+Methods should therefore be investigated to simplify these statements, such as using regex patterns to define what types of resources are constrained
+in the endpoint.
 
 \paragraph{Service Registries and Indexing.}
-Where direct linkage is absent, research directs towards the usage of external service registries and catalogs. 
+Instead of relying on direct linkage, research can be directed towards the usage of external service registries and catalogs. 
 Unlike linkage-based discovery, this approach treats the mapping between URI namespaces and SPARQL endpoints as a separate knowledge base. 
 Within a dataspace, services such as ESPRESSO~\cite{ragab2023espresso} can aggregate these connections,
 effectively bridging the gap between identifiers and query services.
@@ -380,9 +409,9 @@ such as Peer-to-Peer (P2P) discovery mechanisms, to prevent the reliance on sing
 
 \subsection{Alternative View Deduplication}
 In decentralized dataspaces, a single dataset can often be accessed through multiple architectural views.
-Consider a personal data store (PDS) following the Solid protocol~\cite{sambra2016solid}.
-Here, data is structured as a hierarchical resource tree where documents are interconnected via RDF predicates\rt{Mention LDP here}.
-A Link Traversal Query Processing (LTQP) engine navigates this store by dereferencing these URIs on-the-fly.
+Consider a personal data store (PDS) following the Solid protocol~\cite{sambra2016solid}. 
+Based on the Linked Data Platform (LDP)~\cite{speicher2015linked}, 
+this environment structures data as a hierarchical resource tree, interconnecting documents via RDF predicates.
 
 Data providers may also expose a SPARQL endpoint over the same PDS to improve query efficiency.
 Ideally, an LTQP engine should incorporate this endpoint into its query plan.
@@ -394,9 +423,8 @@ leading to duplicated results and wasted computational resources.
 In the specific context of Solid, a client might assume that any (public) URI sharing the Pod's root namespace is covered by the discovered endpoint.
 However, in general dataspace environments, this assumption is often unsubstantiated;
 alternative views may only cover specific subsets of data, such as historical archives versus high-frequency data.
-
-\rt{I like the direction of that last sentence! Let's include the nuances from our discussion on Tuesday here more explicitly (that views may not contain exactly the same data.)}
-
+In addition, views may cover data outside the namespace, if it acts as a aggregator, further complicating the problem of determining which
+sources will cause result duplication.
 
 \subsubsection{Research Avenues}
 
@@ -410,25 +438,25 @@ as each coherence check requires additional HTTP requests.
 An alternative is to rely on server-side metadata that explicitly denotes which underlying resources a given access interface aggregates.
 Unfortunately, this relies heavily on the widespread adoption of specific metadata vocabularies by data providers,
 which cannot easily be guaranteed in a decentralized, autonomous dataspace.
-\rt{For this one (also also others for that matter, so might be better for conclusions), you could mention that this is best to take up within standardization efforts (e.g. dataspaces, LWS, ...)}
 
 \paragraph{Client-Side Deduplication}
 Regardless of whether the data coverage of discovered access interfaces is known,
-the query engine must perform deduplication on the client side.\rt{There's some nuance to explain here: 2 cases: if the overlap could be determined upfront, then no filtering afterwards is needed, as requests that would produce those duplicate results can be avoided. But if overlap if detected later, then we need such filtering indeed (either for everything, or only up to the point of where result-producing-requests can be avoided)}
-This requires tracking the \emph{provenance} (i.e., the source) of bindings \rt{I would call it "intermediary results", as not everyone here may know this terminology} during query processing
-to filter out duplicates based on the computed or assumed coverage of alternative interfaces.
-A naive approach is to maintain a ``seen'' set of previously produced bindings for each triple pattern,
-discarding any newly discovered matches that already exist in the set.
-However, retaining a complete history of bindings is highly memory-intensive and scales poorly for large queries.
-While probabilistic data structures like Bloom filters can drastically reduce this memory footprint,
-their inherent false-positive rates risk accidentally discarding unique, valid results.
+the query engine must perform client-side deduplication.
+This requires tracking the \emph{provenance} (i.e., the source) of intermediate results to filter out duplicates.
 
-If the engine knows which sources are covered by an alternative access interface, it can attempt further optimizations.\rt{Aha, this is where you mention this second case. Might be good to announce the 2 cases in the beginning if this part.}
-First, upon discovering the interface, any relevant links that have been discovered but not yet dereferenced can be pruned from the traversal queue.
-Second, the engine can better manage the lifecycle of the ``seen'' sets.
-Once the engine can guarantee that all data capable of producing duplicate results has been processed,
-the associated ``seen'' sets can be safely discarded to free memory.
-However, the mechanism for reliably detecting this point during execution remains an open research area.
+We consider two scenarios based on this coverage knowledge.
+First, without coverage guarantees, the engine relies on a naive approach.
+It maintains a ``seen'' set of all previously produced intermediate results for each triple pattern,
+discarding any new matches that already exist in the set.
+Retaining this complete history is highly memory-intensive and scales poorly.
+While probabilistic data structures like Bloom filters can reduce this memory footprint,
+their inherent false-positive rates risk accidentally discarding valid results.
+
+Second, if the engine knows which sources an alternative access interface covers,
+it can optimize the lifecycle of the ``seen'' sets.
+Once the engine guarantees that all data capable of producing duplicate results has been processed,
+it can safely discard the associated sets to free memory and prevent sources covered by the alternative interface from being dereferenced.
+However, reliably detecting this execution point remains an open research problem.
 
 \section{Conclusion}
 %TODO: Improve this a lot? I'm not sure I like just enumerating what I already talked about
@@ -437,20 +465,24 @@ by combining the dynamic discovery of link traversal with the computational effi
 
 However, as outlined in this paper, realizing a fully functional Hybrid LTQP engine introduces substantial technical hurdles.
 The unbounded nature of the web makes it difficult to establish exclusive groups for safe sub-query delegation without relying on prior knowledge,
-discoverable indexes, or strict authoritativeness assumptions.
-Furthermore, query engines must adopt highly adaptive processing techniques to seamlessly integrate dynamically discovered materialized sub-queries
+discoverable indexes, or authoritativeness assumptions.
+Furthermore, query engines must adopt highly adaptive processing techniques to integrate dynamically discovered materialized sub-queries
 without thrashing the query plan or losing intermediate results.
 We also highlight the ongoing need for robust service discovery mechanisms to bridge the gap between resource identifiers
 and the endpoints aggregating them.
 Finally, we identify a challenge with alternative views and the inherent risk of result duplication due to them and identify 
 two reseach directions for this challenge.
+Within these challenges possible solutions are by the inclusion of various metadata regarding the content of data sources within dataspaces, which
+would be best to take up within standardization efforts.
 
-Ultimately, transitioning from a ``lowest common denominator'' traversal strategy \rt{It's a bit vague what you mean by this. I assume it's about the fact that we only can send triple patterns to SPARQL endpoints?} to a fully hybrid approach is essential 
+Ultimately, transitioning from a traversal strategy where only single triple patterns can be sent to expressive interfaces to a fully hybrid approach is essential 
 to leverage the diverse access interface expected in dataspaces.
 Addressing these open research avenues will be critical in developing query engines capable of scaling 
 to the realistic demands of a decentralized data ecosystem.
 
-\rt{Could you include acks for my FWO funding?}
+\section*{Acknowledgements}
+This research was supported by SolidLab Vlaanderen (Flemish Government, EWI and RRF project VV023/10).
+Ruben Taelman is a postdoctoral researcher at the Research Foundation – Flanders (FWO).
 
 
 % Please adjust accordingly. See https://ceur-ws.org/GenAI/Policy.html
