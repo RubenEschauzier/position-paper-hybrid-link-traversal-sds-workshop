@@ -11,6 +11,20 @@
 \usepackage{amsthm}
 \usepackage{mdframed}
 
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, shapes.symbols, backgrounds, fit}
+% Define custom styles
+\tikzset{
+    % Standard document/resource node
+    doc/.style={rectangle, draw=black, thick, fill=white, minimum size=6mm, inner sep=1pt, font=\small\ttfamily},
+    % Predicate connection
+    pred/.style={->, >=Stealth, thin, shorten >=1pt, font=\scriptsize\itshape},
+    % Zone highlight
+    overlap/.style={fill=blue!10, draw=blue!40, dashed, rounded corners=3mm, inner sep=2mm},
+    % Database icon (SPARQL Endpoint)
+    db/.style={cylinder, draw=black, thick, fill=gray!10, shape border rotate=90, aspect=0.25, minimum width=1.5cm, minimum height=1.8cm, font=\small\bfseries, align=center}
+}
+
 \theoremstyle{definition}
 \newtheorem{exmp}{Example}[section]
 \newtheorem{definition}{Definition}
@@ -253,8 +267,8 @@ This is antithetical to the streaming nature of LTQP engines~\cite{taelman2018co
 Thus, traditional approaches for determining exclusive groups are not applicable.
 
 \subsubsection{Research Avenues}
-
-\rt{I'd repeat the main problem here first: what information could we use to safely determine exclusive groups?}
+Determining exclusive groups in hybrid link traversal requires comprehensive knowledge of source coverage, specifically information about
+what data is \emph{only} available at a single source. Several research avenues exist to obtain this information.
 
 \paragraph{Discoverable Indexes:} 
 Indexes can be effectively used to catalogue the data sources present in a dataspace.
@@ -282,9 +296,9 @@ Under standard Link Traversal, any reachable source can assert triples about any
 (e.g., a third-party source asserting \texttt{<P1> foaf:knows <P2>}), creating a ``wild west'' of data where 
 no single source can be deemed the exclusive authority for a topic.
 This lack of authority prevents the query engine from determining if a set of patterns can be safely delegated to a single dataspace or endpoint.
-
-\rt{I'd position this around our work on guided link traversal, where adding additional assumptions on the link structures can help us optimize more.}
-A possible solution is restricting the scope of validity such that a data source is the \emph{sole authority} 
+Previous work on guided link traversal~\cite{verborgh2020guided} demonstrates that introducing structural assumptions enables 
+further optimizations. 
+Applying this principle, a potential solution restricts the scope of validity, assuming a data source acts as the \emph{sole authority}
 for triples where the subject corresponds to the source's own URI (or a URI within its controlled namespace).
 By enforcing this \emph{Subject Authority Constraint}, the query engine can 
 statically determine that all triples matching \texttt{<SourceA/posts/post1> ?p ?o} reside exclusively at \emph{Source A}
@@ -385,6 +399,10 @@ such as \texttt{https://alice.example.org/posts/sparql}.
 Because the resource and endpoint URIs are decoupled, standard link traversal fails to retrieve the data.
 
 \subsubsection{Research Avenues}
+Because standard traversal fails when URIs are decoupled from their access interfaces,
+query engines must actively discover and map these aggregator interfaces.
+Several research avenues address this challenge.
+
 \paragraph{Explicit Linkage Mechanisms}
 An avenue for mitigating the service discovery gap is by using explicit links between resources and their hosting endpoints. 
 This approach relies on extending the ``follow-your-nose'' principle to include service metadata within the resource description itself. 
@@ -416,17 +434,104 @@ this environment structures data as a hierarchical resource tree, interconnectin
 Data providers may also expose a SPARQL endpoint over the same PDS to improve query efficiency.
 Ideally, an LTQP engine should incorporate this endpoint into its query plan.
 However, because endpoint discovery is itself a byproduct of the traversal process, 
-an engine may dereference several hypermedia documents before it encounters the metadata pointing to the endpoint.
+an engine may dereference several hypermedia documents before it encounters the metadata pointing to the endpoint. 
 
 This creates a synchronization problem: the engine ingests the same data from two different interfaces,
 leading to duplicated results and wasted computational resources.
 In the specific context of Solid, a client might assume that any (public) URI sharing the Pod's root namespace is covered by the discovered endpoint.
 However, in general dataspace environments, this assumption is often unsubstantiated;
-alternative views may only cover specific subsets of data, such as historical archives versus high-frequency data.
-In addition, views may cover data outside the namespace, if it acts as a aggregator, further complicating the problem of determining which
-sources will cause result duplication.
+alternative views may only cover specific subsets of data, such as historical archives versus high-frequency data. 
+Figure \ref{fig:view_overlap_final} illustrates this process:
+the engine enters a PDS at a leaf node and traverses \emph{up} the resource tree to discover the endpoint,
+resulting in redundant data ingestion.
+In this scenario, because the endpoint only covers the user's posts,
+the assumption that an endpoint covers all data within a PDS is violated.
+Furthermore, although not shown in the figure, views may act as aggregators covering data outside their own namespace,
+making it even more difficult to identify which sources will cause result duplication.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[node distance=0.8cm and 0.5cm, >=Stealth]
+
+        % ==========================================
+        % LEFT SIDE: LDP View (Resource Tree)
+        % ==========================================
+        
+        % Pod Root
+        \node (root) [doc, font=\small\bfseries] {/ (Pod Root)};
+        
+        % Profile
+        \node (profile) [doc, below left=of root, xshift=-0.2cm] {profile};
+        \node (card) [doc, below=of profile] {card};
+        
+        % Posts Container
+        \node (posts) [doc, below right=of root, xshift=0.2cm] {posts/};
+        
+        % Individual Posts
+        \node (p1) [doc, below left=of posts, xshift=0.2cm, fill=green!10] {post1};
+        \node (p2) [doc, below right=of posts, xshift=-0.2cm] {post2};
+        
+        % Start indicator
+        \node (start) [left=0.2cm of p1, font=\footnotesize\bfseries, text=red!80!black, align=center] {Start \\ Traversal};
+        \draw[->, red!80!black, thick] (start) -- (p1);
+
+        % Draw Tree Connections (No predicates)
+        \draw [pred] (root) -- (profile);
+        \draw [pred] (profile) -- (card);
+        \draw [pred] (root) -- (posts);
+        \draw [pred] (posts) -- (p1);
+        \draw [pred] (posts) -- (p2);
+        
+
+        % ==========================================
+        % RIGHT SIDE: SPARQL View (Aggregator)
+        % ==========================================
+        
+        % SPARQL Endpoint Icon - Moved to align horizontally with the Pod Root
+        \node (sparql) [db, right=3.5cm of root] {SPARQL\\Endpoint};
+        
+
+        % ==========================================
+        % TRAVERSAL & DISCOVERY PATH
+        % ==========================================
+        
+        % Upward traversal indicators (straight, dashed, top-most offset, shortened to prevent clipping)
+        \draw[->, red!80!black, thick, dashed, shorten <=2mm, shorten >=2mm, transform canvas={xshift=-0.15cm, yshift=0.15cm}] 
+            (p1) -- node[left, font=\scriptsize, xshift=-0.05cm] {} (posts);
+        \draw[->, red!80!black, thick, dashed, shorten <=2mm, shorten >=3.5mm, transform canvas={xshift=0.15cm, yshift=0.15cm}] 
+            (posts) -- node[right, font=\scriptsize, xshift=0.05cm] {} (root);
+
+        % Traversal arrow to the alternative view (straight red dashed, top-most, shortened)
+        \draw[->, red!80!black, thick, dashed, shorten <=2mm, shorten >=2mm, transform canvas={yshift=0.15cm}] (root) -- (sparql);
+
+        % Alternative view discovery (black, shifted below to ensure red is top-most)
+        \draw[->, >=Stealth, thick, draw=black, transform canvas={yshift=-0.1cm}] (root) -- (sparql) 
+            node[midway, below, sloped, font=\footnotesize\bfseries, text=black] {alternative view};
+
+        % ==========================================
+        % OVERLAP / DEDUPLICATION ZONE
+        % ==========================================
+        
+        % Highlighted region covering the posts subset
+        \begin{scope}[on background layer]
+            \node[overlap, fit=(posts) (p1) (p2)] (overlapZone) {};
+        \end{scope}
+        
+        % Connect the aggregated View (SPARQL) to the actual data (Overlap Zone)
+        % The |- operator makes the line drop vertically from the endpoint, then horizontally to the overlap zone
+        \draw[<->, >=Stealth, thick, blue, dashed] (sparql.south) |- (overlapZone.east)
+            node[pos=0.75, above, text=blue, font=\footnotesize\bfseries, align=center] {Aggregates};
+
+    \end{tikzpicture}
+    \caption{Data coverage overlap and traversal dynamics. Execution starts at \texttt{post1}, traversing up the LDP hierarchy until it discovers the SPARQL endpoint at the root. Because this endpoint acts as an alternative view aggregating the same posts already being traversed, the engine retrieves duplicate data.}
+    \label{fig:view_overlap_final}
+\end{figure}
 
 \subsubsection{Research Avenues}
+
+To prevent this duplication, engines must accurately determine the exact data boundaries of overlapping interfaces.
+Additionally, when an engine ingests duplicate data, it requires
+an approach that can deduplicate that data internally.
 
 \paragraph{View Overlap Detection}
 To determine an appropriate deduplication strategy,
