@@ -147,6 +147,14 @@ the computational capabilities of heterogeneous, expressive data interfaces alon
 \end{mdframed}
 
 Examples of such expressive interfaces are SPARQL endpoints, materialized views, and TPF~\cite{verborgh2016triple}. 
+Figure~\ref{fig:main_fig} shows in diagram what that would look like.
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=.8\textwidth]{main_figure_hybrid_traversal.pdf}
+    \caption{Hybrid Link Traversal leveraging the varying levels of expressiveness of heterogeneous sources during the traversal query execution}
+    \label{fig:main_fig}
+\end{figure}
 % where we move from the traditional Linked Data Document-only LTQP paradigm, towards systems capable of traversing
 % and \emph{leveraging} the capabilities of more expressive data interface, in \emph{adddition} to Linked Data Documents.
 
@@ -452,11 +460,6 @@ making it even more difficult to identify which sources will cause result duplic
 \begin{figure}[htbp]
     \centering
     \begin{tikzpicture}[node distance=0.8cm and 0.5cm, >=Stealth]
-
-        % ==========================================
-        % LEFT SIDE: LDP View (Resource Tree)
-        % ==========================================
-        
         % Pod Root
         \node (root) [doc, font=\small\bfseries] {/ (Pod Root)};
         
@@ -482,10 +485,6 @@ making it even more difficult to identify which sources will cause result duplic
         \draw [pred] (posts) -- (p1);
         \draw [pred] (posts) -- (p2);
         
-
-        % ==========================================
-        % RIGHT SIDE: SPARQL View (Aggregator)
-        % ==========================================
         
         % SPARQL Endpoint Icon - Moved to align horizontally with the Pod Root
         \node (sparql) [db, right=3.5cm of root] {SPARQL\\Endpoint};
@@ -508,10 +507,6 @@ making it even more difficult to identify which sources will cause result duplic
         \draw[->, >=Stealth, thick, draw=black, transform canvas={yshift=-0.1cm}] (root) -- (sparql) 
             node[midway, below, sloped, font=\footnotesize\bfseries, text=black] {alternative view};
 
-        % ==========================================
-        % OVERLAP / DEDUPLICATION ZONE
-        % ==========================================
-        
         % Highlighted region covering the posts subset
         \begin{scope}[on background layer]
             \node[overlap, fit=(posts) (p1) (p2)] (overlapZone) {};
