@@ -105,10 +105,10 @@ each enforcing its own usage policies.
 
 \emph{Centralized} querying requires collecting large volumes of proprietary or sensitive data in a single source, 
 which conflicts with the requirements for fine-grained sovereignty and minimized data replication.
-Conversely, traditional \emph{federated} approaches~\cite{schwarte2011fedx,schmidt2011fedbench,heling2022federated} support decentralization
+Conversely, traditional \emph{federated} approaches~\cite{schmidt2011fedbench} support decentralization
 but typically assume a static federation of a small number (10–100) of uniform,
 expressive endpoints (e.g., SPARQL endpoints)~\cite{dang2023fedshop}.
-Closely related are heterogeneous federation approaches~\cite{heling2021framework,cheng2022towards,heling2022federated}, which operate similarly but allow different source interfaces,
+Closely related are heterogeneous federation approaches~\cite{cheng2022towards,heling2022federated}, which operate similarly but allow different source interfaces,
 such as Triple Pattern Fragments (TPF)~\cite{verborgh2016triple}, Bindings-Restricted TPF
 (brTPF)~\cite{hartig2016bindings}, Star Pattern Fragments (SPF)~\cite{aebeloe2020star}, SaGe~\cite{minier2019sage},
 smart-KG~\cite{azzam2020smart}, and WiseKG~\cite{azzam2021wisekg}.
@@ -151,7 +151,7 @@ Figure~\ref{fig:main_fig} shows in diagram what that would look like.
 
 \begin{figure}[htp]
     \centering
-    \includegraphics[width=.8\textwidth]{main_figure_hybrid_traversal.pdf}
+    \includegraphics[width=.7\textwidth]{main_figure_hybrid_traversal.pdf}
     \caption{Hybrid Link Traversal leveraging the varying levels of expressiveness of heterogeneous sources during the traversal query execution}
     \label{fig:main_fig}
 \end{figure}
@@ -580,20 +580,13 @@ to leverage the diverse access interface expected in dataspaces.
 Addressing these open research avenues will be critical in developing query engines capable of scaling 
 to the realistic demands of a decentralized data ecosystem.
 
-\section*{Acknowledgements}
-This research was supported by SolidLab Vlaanderen (Flemish Government, EWI and RRF project VV023/10).
+\paragraph{Acknowledgements} This research was supported by SolidLab Vlaanderen (Flemish Government, EWI and RRF project VV023/10).
 Ruben Taelman is a postdoctoral researcher at the Research Foundation – Flanders (FWO).
-
-
 % Please adjust accordingly. See https://ceur-ws.org/GenAI/Policy.html
 %% The declaration on generative AI comes in effect
 %% in Janary 2025. See also
 %% https://ceur-ws.org/GenAI/Policy.html
-\section*{Declaration on Generative AI}
-%The author(s) have not employed any Generative AI tools.
- 
-% Use the activity taxonomy in ceur-ws.org/genai-tax.html
-During the writing of this paper, the author(s) used Gemini in order to: Sentence Polishing, Rephrasing, and Text Creation. After using these tool(s)/service(s), the author(s) reviewed and edited the content as needed and take(s) full responsibility for the publication’s content.
+\paragraph{Declaration on Generative AI} During the writing of this paper, the author(s) used Gemini in order to: Sentence Polishing, Rephrasing, and Text Creation. After using these tool(s)/service(s), the author(s) reviewed and edited the content as needed and take(s) full responsibility for the publication’s content.
 
 %%
 %% Define the bibliography file to be used
