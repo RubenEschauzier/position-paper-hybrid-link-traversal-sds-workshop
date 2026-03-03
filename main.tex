@@ -60,13 +60,14 @@ email=ruben.taelman@ugent.be
 \begin{abstract}
 % Context: Why the need is so pressing or important
 Decentralized dataspaces preserve data sovereignty by keeping data at its source, 
-but querying a large number of autonomous sources with heterogeneous interfaces introduces significant challenges. 
+but querying a large number (thousands) of autonomous sources with heterogeneous interfaces introduces significant challenges. 
 % Need: Why something needed to be done at all
-Traditional Federated Query Processing (FQP) \rt{I rephrased this here. Feel free to use FQP later in the text where needed and applicable.} engines fail to scale to this size \rt{"This size" is not clear enough. Maybe hint to an approximate number in the sentence above}, while existing Link Traversal-based Query Processing (LTQP) systems can only handle Linked Data documents.
+Traditional Federated Query Processing (FQP) engines fail to scale to this size,
+while existing Link Traversal-based Query Processing (LTQP) systems can only handle Linked Data documents.
 By ignoring the (query) capabilities of expressive interfaces, such as SPARQL endpoints,
 current LTQP engines suffer performance issues. 
 % Task: What was undertaken to address the need
-To address this, we advocate for Hybrid LTQP, an execution strategy that combines the dynamic runtime discovery of link traversal
+To address this, we advocate for Hybrid FQP-LTQP, an execution strategy that combines the dynamic runtime discovery of link traversal
 with the performance benefits of delegating complex sub-queries to capable server-side interfaces. 
 % Object: What the present document does or covers
 This paper reviews the state-of-the-art in hybrid traversal and identifies the critical challenges hindering its implementation:
@@ -77,7 +78,8 @@ Solving the challenges identified in this paper is a strict prerequisite
 for making hybrid decentralized querying practically viable across heterogeneous dataspaces. 
 % Perspectives: What the future holds, beyond this work
 Consequently, future research must prioritize these open problems to engineer the next generation of scalable, 
-interface-aware \rt{Would it make sense to refer to hybrid FQP-LTQP query engines here? (and possible also later in the text. (but just "hybrid" in short-form is probably fine in most cases))} LTQP query engines.\end{abstract}
+hybrid FQP-LTQP engines.
+\end{abstract}
 
 %%
 %% Keywords. The author(s) should pick words that accurately describe
@@ -92,8 +94,6 @@ interface-aware \rt{Would it make sense to refer to hybrid FQP-LTQP query engine
 
 \maketitle
 
-\rt{Do double-check, but I think you're over the page limit. (All page limits include references.)}
-
 %%
 %% Reference a generic issue from the W3C Dataspaces Community Group, as described at https://dbis.rwth-aachen.de/SDS25/#submission. The author(s) must reference an existing issue in the GitHub repository, or add a new one.
 \noindent This paper addresses (\href{https://github.com/w3c-cg/dataspaces/issues/2}{Issue \#2}) of the \href{https://www.w3.org/community/dataspaces/}{W3C Dataspaces Community Group}.
@@ -107,18 +107,16 @@ each enforcing its own usage policies.
 
 \emph{Centralized} querying requires collecting large volumes of proprietary or sensitive data in a single source, 
 which conflicts with the requirements for fine-grained sovereignty and minimized data replication.
-Conversely, traditional \emph{federated} approaches~\cite{schmidt2011fedbench} support decentralization
+Conversely, traditional \emph{federated} query processing approaches (FQP)~\cite{schmidt2011fedbench} support decentralization
 but typically assume a static federation of a small number (10–100) of uniform,
 expressive endpoints (e.g., SPARQL endpoints)~\cite{dang2023fedshop}.
-Closely related are heterogeneous federation approaches~\cite{cheng2022towards,heling2022federated}, which operate similarly but allow different source interfaces,
-such as Triple Pattern Fragments (TPF)~\cite{verborgh2016triple}, Bindings-Restricted TPF
-(brTPF)~\cite{hartig2016bindings}, Star Pattern Fragments (SPF)~\cite{aebeloe2020star}, SaGe~\cite{minier2019sage},
-smart-KG~\cite{azzam2020smart}, and WiseKG~\cite{azzam2021wisekg}.
+Closely related is heterogeneous FQP~\cite{cheng2022towards,heling2022federated}, which operates similarly but allows different source interfaces,
+such as Triple Pattern Fragments (TPF)~\cite{verborgh2016triple}, and WiseKG~\cite{azzam2021wisekg}.
 Enforcing complex usage policies~\cite{esteves2021odrl} on such heavyweight interfaces significantly
 impacts performance~\cite{padia2015attribute}, and these engines struggle to scale to the thousands of sources characteristic of a dataspace.
 
 In contrast, realistic dataspace environments are characterized by a massive scale of permissioned sources
-and high interface diversity~\cite{halevy2006principles,curry2019dataspaces}.
+and high interface diversity~\cite{curry2019dataspaces}.
 Beyond the structured fragments managed by traditional heterogeneous federated engines,
 dataspace participants may, for example, expose data through generic HTTP documents or derived views~\cite{van2024granular}. 
 Because these participants are autonomous and decentralized, their availability
@@ -133,31 +131,17 @@ Starting from seed references (e.g., a self-description or catalog entry), it fo
 While LTQP is traditionally defined as an approach for querying over federated Linked Data documents by following links at runtime,
 data within a dataspace is often exposed through diverse access interfaces that may not support standard document-based traversal and querying.
 
-We advocate for \emph{Hybrid} LTQP, which we define below
-
-% \begin{definition}[Hybrid LTQP]
-%   \emph{Hybrid Link Traversal Query Processing} is a query execution paradigm that advances
-% beyond static document-centric traversal. It encompasses systems designed to traverse, integrate, and actively leverage 
-% the computational capabilities of heterogeneous, expressive data interfaces alongside standard Linked Data Documents.
-% \end{definition}
-
-\begin{mdframed}[backgroundcolor=gray!10, linewidth=1pt, roundcorner=4pt]
-\textbf{Definition (Hybrid LTQP):} We define \emph{Hybrid Link Traversal Query Processing} as a query execution paradigm
+We advocate for \emph{Hybrid} FQP-LTQP, which we define as a query execution paradigm
 that advances beyond traditional Linked Data Document-centric traversal.
 It enables query engines to traverse, integrate, and actively leverage 
 the computational capabilities of heterogeneous, expressive data interfaces alongside standard Linked Data Documents.
-\end{mdframed}
-
-Examples of such expressive interfaces are SPARQL endpoints, materialized views, and TPF~\cite{verborgh2016triple}. 
-Figure~\ref{fig:main_fig} shows in diagram what that would look like.
+Possible examples of such expressive interfaces are SPARQL endpoints and TPF~\cite{verborgh2016triple} (Figure~\ref{fig:main_fig}). 
 
 \begin{figure}[htp]
-    \rt{TPF interface here has pink text for some reason.}
-    \rt{If you run into space issues, you could probably make the figure smaller.}
-    \centering
-    \includegraphics[width=.7\textwidth]{main_figure_hybrid_traversal.pdf}
-    \caption{Hybrid Link Traversal leveraging the varying levels of expressiveness of heterogeneous sources during the traversal query execution}
-    \label{fig:main_fig}
+  \centering
+  \includegraphics[width=.6\textwidth]{main_figure_hybrid_traversal.pdf}
+  \caption{Hybrid FQP-LTQP leveraging the varying levels of expressiveness of heterogeneous sources during the traversal query execution}
+\label{fig:main_fig}
 \end{figure}
 % where we move from the traditional Linked Data Document-only LTQP paradigm, towards systems capable of traversing
 % and \emph{leveraging} the capabilities of more expressive data interface, in \emph{adddition} to Linked Data Documents.
@@ -167,7 +151,7 @@ Figure~\ref{fig:main_fig} shows in diagram what that would look like.
 
 
 To leverage these varied levels of expressivity, a hybrid engine must offload computation to the server whenever possible. 
-For instance, a SPARQL endpoint can execute complex sub-queries locally, while document-oriented interfaces can't.
+For instance, a SPARQL endpoint can execute complex sub-queries locally, while document-oriented interfaces cannot.
 By leveraging internal indexing and local data knowledge, the endpoint could produce results far more efficiently than a client-side LTQP engine.
 Offloading these tasks to capable endpoints could significantly reduce overall query latency.
 However, building such a system introduces several unresolved challenges. 
@@ -175,20 +159,20 @@ In this paper, we review the state-of-the-art in hybrid querying, analyze relate
 
 \section{Related Work}
 
-While Hybrid LTQP has previously been explored in literature, its exact definition varies across studies.
-Early works~\cite{hartig2010database,umbrich2012hybrid,lynden2013hybrid,hartig2019linked} typically define a ``hybrid'' approach 
-as the combination of live link traversal with traditional centralized or federated querying mechanisms.
-In contrast, our work employs a strictly live-traversal process, redefining the ``hybrid'' aspect as the traversal over heterogeneous data sources.
+While Hybrid FQP-LTQP has previously been explored in literature, its exact definition varies across studies.
+Early works~\cite{umbrich2012hybrid,lynden2013hybrid,hartig2019linked} typically define a ``hybrid'' approach 
+as the combination of live link traversal with traditional centralized or federated querying mechanisms operating separately.
+In contrast, our work employs a strictly live-traversal process, redefining
+the ``hybrid'' aspect as the traversal over heterogeneous data sources within a single process.
 
 
 \subsection{Hybrid Traversal - Local vs Remote}
 
-A branch of hybrid link traversal querying uses precomputed indexes,
+A branch of FQP-LTQP uses precomputed indexes,
 either located within the decentralized environment or computed locally,
 to speed up query execution or source discovery.
 The first of such approaches uses precomputed indexes to rerank sources based on relevance to the query's triple patterns and joins,
 retrieving them to execute queries~\cite{ladwig2010linked}.
-Other works~\cite{sabri2015hybrid} propose caching information on sources to help prioritize them.
 
 Another approach is to store entire RDF graphs in local stores to quickly execute parts of the query.
 As a result, non-blocking index-based operators~\cite{ladwig2011sihjoin}
@@ -196,16 +180,16 @@ can be used to leverage the locally computed indexes for faster query execution.
 
 A major limitation is the freshness of the data in the store and indexes,
 which can quickly go stale for high-velocity data sources.
-In addition, these preliminary works deviate from our definition of hybrid LTQP,
+In addition, these preliminary works deviate from our definition of hybrid FQP-LTQP,
 as they rely solely on Linked Data Document-centric traversal to populate local caches or use decentralized indexes only to optimize
 the Linked Data Document-based traversal process.
 
 \subsection{Hybrid Traversal - Multiple Processes}
 
-The methods in the literature falling within our definition of hybrid traversal
+The methods in the literature falling within our definition of hybrid FQP-LTQP
 use two separate query processes to obtain data from heterogeneous sources.
 First, coherence-aware query processing uses a centralized store to obtain initial query results quickly.
-Using a method called coherence estimation, it determines which data from this store is likely stale.
+Using coherence estimation, it determines which data from this store is likely stale.
 The stale data is then discovered and queried using the traversal-based second process during query execution.
 Finally, the results are combined to provide the query answer.
 
@@ -217,9 +201,9 @@ Consequently, the system cannot utilize new SPARQL endpoints discovered during t
 
 \subsection{Hybrid Traversal - Closed Systems}
 
-Other approaches integrate into the dataspace itself. ESPRESSO~\cite{ragab2023espresso} is such an approach, 
+Other approaches integrate into the dataspace itself. ESPRESSO~\cite{ragab2023espresso} is such an approach;
 it is a framework around the Solid dataspace specifically that defines several apps in the dataspace to perform certain (optimization) tasks.
-In the Solid environment, data is stored into personal data vaults. These vaults use the Linked Data Platform~\cite{ldp} to arrange the data into a folder-like
+In the Solid environment, data is stored in personal data vaults. These vaults use the Linked Data Platform~\cite{ldp} to arrange the data into a folder-like
 structure.
 To avoid traversing the entire pod to query it, ESPRESSO uses the \textit{Brewmaster} application to locally create indexes of the pod 
 and uses the \textit{CoffeeFilter} application to search its contents.
@@ -231,12 +215,13 @@ ESPRESSO relies on an explicitly configured overlay network,
 with no mechanism for dynamically discovering participating servers or query endpoints.
 Furthermore, currently ESPRESSO only supports distributed keyword-based search, it does not support SPARQL queries over the sources.
 
-While these approaches do hybrid link traversal, they significantly deviate from our interpretation of hybrid traversal.
+While these approaches do hybrid link traversal, they significantly deviate from our interpretation of hybrid FQP-LTQP.
 This is in contrast to the setting described in this paper where the discovered sources themselves are heterogeneous, serendipitously discovered, 
 and cannot be assumed to be present for every source within the dataspace. 
 
 \subsection{Hybrid Link Traversal over Heterogeneous Sources}
-State-of-the-art LTQP engines, most notably Comunica Link Traversal~\cite{taelman2018comunica, taelman2023link}, demonstrate hybrid capabilities by dynamically federating 
+State-of-the-art LTQP engines, most notably Comunica Link Traversal~\cite{taelman2018comunica, taelman2023link},
+demonstrate hybrid capabilities by dynamically federating 
 over discovered SPARQL endpoints, TPF interfaces, and hypermedia documents.
 However, these systems are currently limited by a triple pattern level-only strategy: they fail
 to leverage the full expressivity of sophisticated interfaces.
@@ -247,36 +232,32 @@ This often results in the client retrieving high volumes of intermediate results
 reducing the optimization and latency benefits of more expressive server-side execution.
 
 \section{Challenges with Hybrid Link Traversal}
-In this section, we will outline specific identified problems with hybrid link traversal making implementation difficult.
 
 \subsection{Establishing Exclusive Groups}
 
-In classical federated query processing, \emph{exclusive groups} are sets of triple patterns within a query
+In FQP, \emph{exclusive groups} are sets of triple patterns within a query
 that can \emph{only} be answered by a single source~\cite{schwarte2011fedx}. 
-instead of retrieving results for individual triple patterns and joining them locally,
+Instead of retrieving results for individual triple patterns and joining them locally,
 the engine can delegate the entire group as a single sub-query (e.g., a Basic Graph Pattern) to the remote endpoint. 
 This technique significantly reduces the number of remote requests and processed intermediate results~\cite{aimonier2024fedup,schwarte2011fedx}.
 
-The identification of exclusive groups is a strict requirement for this sub-query delegation. 
 If a query engine cannot verify that a group of patterns belongs \emph{exclusively} to a single source,
 it cannot safely dispatch them as a conjunctive sub-query (BGP).
 Doing so risks \emph{incomplete results} because the endpoint will execute a server-side join.
 If the endpoint lacks data for one of the patterns, or if valid join partners reside on a different server,
 the server-side join execution will filter out intermediary results that could have been successfully joined with data from another source.
-Thus, to guarantee complete results, a query engine must only delegate conjunctive sub-queries when it can guarantee 
-this sub-query forms an exclusive group.
 
-Federation engines like \emph{FedX}~\cite{schwarte2011fedx}, \emph{HiBISCuS}~\cite{saleem2014hibiscus},
+FQP engines like \emph{FedX}~\cite{schwarte2011fedx}, \emph{HiBISCuS}~\cite{saleem2014hibiscus},
 Comunica~\cite{taelman2018comunica}, and \emph{FedUp}~\cite{aimonier2024fedup}
 rely on either prior knowledge on the content of the federation members, or issue queries (such as ASK) to determine these groups.
 
-For Hybrid Link Traversal to use SPARQL endpoints to compute joins locally, the engine should also identify exclusive groups.
-The problem is the unbounded nature of LTQP~\cite{hartig2012foundations}. As during LTQP the query engine does not have access to
-all sources it will query over, exclusive groups can never be established using traditional federated query approaches.
-Even if we move to a finite web~\cite{hartig2012foundations}, the engine would have to first traverse all reachable~\cite{hartig2012foundations}
-sources before exclusive groups can be determined.
-This is antithetical to the streaming nature of LTQP engines~\cite{taelman2018comunica, hartig2013squin} and will delay time to first result.
-Thus, traditional approaches for determining exclusive groups are not applicable.
+To delegate joins to SPARQL endpoints, Hybrid FQP-LTQP engines must identify exclusive groups. 
+Traditional FQP algorithms require all sources to be known during optimization;
+this requirement is incompatible with the unbounded nature of LTQP~\cite{hartig2012foundations}.
+Even within a bounded web, 
+requiring engines to dereference all data prior to execution eliminates
+the streaming capabilities of current LTQP systems~\cite{taelman2018comunica, hartig2013squin}.
+Therefore, Hybrid FQP-LTQP demands novel approaches for exclusive group identification.
 
 \subsubsection{Research Avenues}
 Determining exclusive groups in hybrid link traversal requires comprehensive knowledge of source coverage, specifically information about
@@ -284,23 +265,21 @@ what data is \emph{only} available at a single source. Several research avenues 
 
 \paragraph{Discoverable Indexes:} 
 Indexes can be effectively used to catalogue the data sources present in a dataspace.
-These indexes could be deployed as services, similar to approaches like ESPRESSO~\cite{ragab2023espresso}, pointing towards available source URIs
-and potentially exposing summary statistics.
-Using such indexes to quickly determine relevant sources, LTQP engines can apply traditional federation techniques 
+These indexes could be deployed as services, similar to approaches like ESPRESSO~\cite{ragab2023espresso}, pointing towards source URIs
+or summary statistics.
+Using indexes to quickly determine relevant sources, LTQP engines can apply FQP techniques 
 to establish exclusive groups and perform source selection.
-This would move the problem from traversal to federation, however new challenges such as index completeness and maintenance would arise
+This would move the problem from traversal to federation, with new challenges such as index completeness and maintenance.
 
 \paragraph{Caching:}
 Similar to discoverable indexes, caches provide prior knowledge about the data sources present in a dataspace.
-Provided the cache maintains a degree of freshness and completeness, the query engine can perform a `simulated traversal' 
-offline over the cached data to identify relevant sources.
+The query engine can perform a `simulated traversal' offline over the cached data to identify relevant sources.
 Any gaps in this knowledge can then be supplemented by live traversal prior to or during execution
 
 The challenge is determining when a cache is ``complete'' for the current query,
 as missing or stale data can affect the correctness of identified exclusive groups.
 For example, if the cached data originates from a different query,
-the cached traversal may differ because URI reachability~\cite{hartig2012foundations} depends on the current query's content.
-Consequently, the cached view may omit URIs that were unreachable during the previous query.
+the cached traversal can differ due to URI reachability~\cite{hartig2012foundations} depending onquery content.
 
 \paragraph{Authoritativeness Assumptions:}
 Establishing exclusive groups in a decentralized dataspace could be achieved through the notion of \emph{source authority}~\cite{bogaerts2024distributed}.
@@ -330,20 +309,14 @@ Because the execution plan is already fixed,
 integrating an exclusive group from a newly discovered interface requires dynamically transforming the plan to accommodate the subquery.
 
 \begin{exmp}
-As an example, consider a query plan with the join structure
-\[
-(T_{1} \Join T_{2}) \Join (T_{3} \Join T_{4}).
-\]
+As an example, consider a query plan with the join structure $(T_{1} \Join T_{2}) \Join (T_{3} \Join T_{4})$.
 If the engine discovers an exclusive group consisting of the triple patterns
 \(\{T_{2}, T_{3}\}\), this group cannot be integrated into the plan.
 The plan never produces an intermediate result of the form
 \(T_{2} \Join T_{3}\), since these patterns occur in different subtrees.
 As a result, the exclusive group does not fit into the existing join structure
 and cannot be pushed as a single subquery.
-However, if the plan is reordered to
-\[
-(T_{2} \Join T_{3}) \Join (T_{1} \Join T_{4}),
-\]
+However, if the plan is reordered to $(T_{2} \Join T_{3}) \Join (T_{1} \Join T_{4})$,
 this group can be integrated, allowing the sub-query \(\{T_{2}, T_{3}\}\) to be sent to the appropriate data sources.
 \end{exmp}
 
@@ -354,7 +327,7 @@ preventing plan thrashing caused by the large number of sources in a dataspace.
 Algorithms such as Eddies~\cite{avnur2000eddies}, SteMs~\cite{raman2003using} (used in~\cite{hartig2016walking}),
 and STAIRs~\cite{deshpande2004lifting} are viable candidates due to their tuple-level adaptivity.
 
-However, the literature lacks a comprehensive analysis of these adaptive frameworks within LTQP.
+However, the literature lacks a comprehensive analysis of these adaptive frameworks within LTQP\@.
 Specifically, there is little guidance on designing routing strategies,
 the logic for forwarding tuples between operators, and assessing their overhead costs.
 
@@ -438,28 +411,44 @@ such as Peer-to-Peer (P2P) discovery mechanisms, to prevent the reliance on sing
 
 
 \subsection{Alternative View Deduplication}
-In decentralized dataspaces, a single dataset can often be accessed through multiple architectural views.
-Consider a personal data store (PDS) following the Solid protocol~\cite{sambra2016solid}. 
-Based on the Linked Data Platform (LDP)~\cite{speicher2015linked}, 
-this environment structures data as a hierarchical resource tree, interconnecting documents via RDF predicates.
+In decentralized dataspaces, a single dataset is often accessible through multiple architectural views.
+For example, a Solid personal data store (PDS) uses the Linked Data Platform (LDP) to structure data as a hierarchical resource tree.
+Providers may also expose a SPARQL endpoint over the same PDS to improve efficiency.
+Ideally, a hybrid FQP-LTQP engine incorporates this endpoint into its query plan.
+However, because endpoint discovery is a byproduct of traversal,
+the engine may dereference several hypermedia documents before discovering the metadata pointing towards the endpoint.
+Due to this, the data ingested from the traversal of the PDS is duplicated when the endpoint is used (Figure~\ref{fig:view_overlap_final}),
+leading to duplicated results and wasted computation.
 
-Data providers may also expose a SPARQL endpoint over the same PDS to improve query efficiency.
-Ideally, an LTQP engine should incorporate this endpoint into its query plan.
-However, because endpoint discovery is itself a byproduct of the traversal process, 
-an engine may dereference several hypermedia documents before it encounters the metadata pointing to the endpoint. 
-
-This creates a synchronization problem: the engine ingests the same data from two different interfaces,
-leading to duplicated results and wasted computational resources.
+Furthermore, the engine cannot determine what parts of the PDS are aggregated by the endpoint nor if the endpoint aggregates data outside
+of the PDS\@.
 In the specific context of Solid, a client might assume that any (public) URI sharing the Pod's root namespace is covered by the discovered endpoint.
 However, in general dataspace environments, this assumption is often unsubstantiated;
 alternative views may only cover specific subsets of data, such as historical archives versus high-frequency data. 
-Figure \ref{fig:view_overlap_final} illustrates this process:
-the engine enters a PDS at a leaf node and traverses \emph{up} the resource tree to discover the endpoint,
-resulting in redundant data ingestion.
-In this scenario, because the endpoint only covers the user's posts,
-the assumption that an endpoint covers all data within a PDS is violated.
-Furthermore, although not shown in the figure, views may act as aggregators covering data outside their own namespace,
-making it even more difficult to identify which sources will cause result duplication.
+
+
+% In decentralized dataspaces, a single dataset can often be accessed through multiple architectural views.
+% Consider a personal data store (PDS) following the Solid protocol~\cite{sambra2016solid}. 
+% Based on the Linked Data Platform (LDP)~\cite{speicher2015linked}, 
+% this environment structures data as a hierarchical resource tree, interconnecting documents via RDF predicates.
+
+% Data providers may also expose a SPARQL endpoint over the same PDS to improve query efficiency.
+% Ideally, an LTQP engine should incorporate this endpoint into its query plan.
+% However, because endpoint discovery is itself a byproduct of the traversal process, 
+% an engine may dereference several hypermedia documents before it encounters the metadata pointing to the endpoint. 
+
+% This creates a synchronization problem: the engine ingests the same data from two different interfaces,
+% leading to duplicated results and wasted computational resources.
+% In the specific context of Solid, a client might assume that any (public) URI sharing the Pod's root namespace is covered by the discovered endpoint.
+% However, in general dataspace environments, this assumption is often unsubstantiated;
+% alternative views may only cover specific subsets of data, such as historical archives versus high-frequency data. 
+% Figure \ref{fig:view_overlap_final} illustrates this process:
+% the engine enters a PDS at a leaf node and traverses \emph{up} the resource tree to discover the endpoint,
+% resulting in redundant data ingestion.
+% In this scenario, because the endpoint only covers the user's posts,
+% the assumption that an endpoint covers all data within a PDS is violated.
+% Furthermore, although not shown in the figure, views may act as aggregators covering data outside their own namespace,
+% making it even more difficult to identify which sources will cause result duplication.
 
 \begin{figure}[htbp]
     \centering
@@ -563,26 +552,17 @@ it can safely discard the associated sets to free memory and prevent sources cov
 However, reliably detecting this execution point remains an open research problem.
 
 \section{Conclusion}
-%TODO: Improve this a lot? I'm not sure I like just enumerating what I already talked about
-Hybrid querying over heterogeneous sources has the potential to significantly reduce query latency and network overhead,
-by combining the dynamic discovery of link traversal with the computational efficiency of expressive interfaces like SPARQL endpoints,
 
-However, as outlined in this paper, realizing a fully functional Hybrid LTQP engine introduces substantial technical hurdles.
-The unbounded nature of the web makes it difficult to establish exclusive groups for safe sub-query delegation without relying on prior knowledge,
-discoverable indexes, or authoritativeness assumptions.
-Furthermore, query engines must adopt highly adaptive processing techniques to integrate dynamically discovered materialized sub-queries
-without thrashing the query plan or losing intermediate results.
-We also highlight the ongoing need for robust service discovery mechanisms to bridge the gap between resource identifiers
-and the endpoints aggregating them.
-Finally, we identify a challenge with alternative views and the inherent risk of result duplication due to them and identify 
-two reseach directions for this challenge.
-Within these challenges possible solutions are by the inclusion of various metadata regarding the content of data sources within dataspaces, which
-would be best to take up within standardization efforts.
-
-Ultimately, transitioning from a traversal strategy where only single triple patterns can be sent to expressive interfaces to a fully hybrid approach is essential 
-to leverage the diverse access interface expected in dataspaces.
-Addressing these open research avenues will be critical in developing query engines capable of scaling 
-to the realistic demands of a decentralized data ecosystem.
+Hybrid querying can reduce query latency and network overhead by combining dynamic link traversal with the efficiency of expressive interfaces.
+However, realizing a fully functional Hybrid FQP-LTQP engine requires overcoming significant technical hurdles.
+Engines must establish exclusive groups without prior knowledge, adapt query plans dynamically to integrate discovered sub-queries,
+implement robust service discovery to link resource identifiers with aggregating endpoints,
+and manage alternative views to prevent result duplication.
+For approaches that rely on metadata to guide traversal and query planning, 
+standardization efforts within dataspaces are required to facilitate them.
+Ultimately, to scale querying across massive and heterogeneous dataspaces,
+engines must stop relying solely on client-side joins of single triple patterns.
+Instead, they must dynamically delegate complex sub-queries to expressive interfaces to reduce network transfer and leverage server-side computation.
 
 \paragraph{Acknowledgements} This research was supported by SolidLab Vlaanderen (Flemish Government, EWI and RRF project VV023/10).
 Ruben Taelman is a postdoctoral researcher at the Research Foundation – Flanders (FWO).
