@@ -62,7 +62,7 @@ email=ruben.taelman@ugent.be
 Decentralized dataspaces preserve data sovereignty by keeping data at its source, 
 but querying a large number of autonomous sources with heterogeneous interfaces introduces significant challenges. 
 % Need: Why something needed to be done at all
-Traditional federated engines fail to scale to this size, while existing Link Traversal-based Query Processing (LTQP) systems can only handle Linked Data documents.
+Traditional Federated Query Processing (FQP) \rt{I rephrased this here. Feel free to use FQP later in the text where needed and applicable.} engines fail to scale to this size \rt{"This size" is not clear enough. Maybe hint to an approximate number in the sentence above}, while existing Link Traversal-based Query Processing (LTQP) systems can only handle Linked Data documents.
 By ignoring the (query) capabilities of expressive interfaces, such as SPARQL endpoints,
 current LTQP engines suffer performance issues. 
 % Task: What was undertaken to address the need
@@ -77,7 +77,7 @@ Solving the challenges identified in this paper is a strict prerequisite
 for making hybrid decentralized querying practically viable across heterogeneous dataspaces. 
 % Perspectives: What the future holds, beyond this work
 Consequently, future research must prioritize these open problems to engineer the next generation of scalable, 
-interface-aware LTQP query engines.\end{abstract}
+interface-aware \rt{Would it make sense to refer to hybrid FQP-LTQP query engines here? (and possible also later in the text. (but just "hybrid" in short-form is probably fine in most cases))} LTQP query engines.\end{abstract}
 
 %%
 %% Keywords. The author(s) should pick words that accurately describe
@@ -91,6 +91,8 @@ interface-aware LTQP query engines.\end{abstract}
 \end{keywords}
 
 \maketitle
+
+\rt{Do double-check, but I think you're over the page limit. (All page limits include references.)}
 
 %%
 %% Reference a generic issue from the W3C Dataspaces Community Group, as described at https://dbis.rwth-aachen.de/SDS25/#submission. The author(s) must reference an existing issue in the GitHub repository, or add a new one.
@@ -150,6 +152,8 @@ Examples of such expressive interfaces are SPARQL endpoints, materialized views,
 Figure~\ref{fig:main_fig} shows in diagram what that would look like.
 
 \begin{figure}[htp]
+    \rt{TPF interface here has pink text for some reason.}
+    \rt{If you run into space issues, you could probably make the figure smaller.}
     \centering
     \includegraphics[width=.8\textwidth]{main_figure_hybrid_traversal.pdf}
     \caption{Hybrid Link Traversal leveraging the varying levels of expressiveness of heterogeneous sources during the traversal query execution}
