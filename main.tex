@@ -140,8 +140,9 @@ These examples are not exhaustive, as many more access interface exist and can b
 
 \begin{figure}[htp]
   \centering
-  \includegraphics[width=.6\textwidth]{main_figure_hybrid_traversal.pdf}
-  \caption{Hybrid FQP-LTQP leveraging the varying levels of expressiveness of heterogeneous sources during the traversal query execution}
+  \includegraphics[width=.5\textwidth]{main_figure_hybrid_traversal.pdf}
+  \caption{Hybrid FQP-LTQP leveraging the varying levels of expressiveness of heterogeneous sources.
+   SPARQL endpoints and TPF are shown as illustrative examples of this broader interface diversity.}
 \label{fig:main_fig}
 \end{figure}
 % where we move from the traditional Linked Data Document-only LTQP paradigm, towards systems capable of traversing
@@ -166,10 +167,8 @@ as the combination of live link traversal with traditional centralized or federa
 In contrast, our work employs a strictly live-traversal process, redefining
 the ``hybrid'' aspect as the traversal over heterogeneous data sources within a single process.
 
-
-\subsection{Hybrid Traversal - Local vs Remote}
-
-A branch of FQP-LTQP uses precomputed indexes,
+% \subsection{Hybrid Traversal - Local vs Remote}
+\paragraph{Hybrid Traversal - Local vs Remote:} A branch of FQP-LTQP uses precomputed indexes,
 either located within the decentralized environment or computed locally,
 to speed up query execution or source discovery.
 The first of such approaches uses precomputed indexes to rerank sources based on relevance to the query's triple patterns and joins,
@@ -184,25 +183,21 @@ which can quickly go stale for high-velocity data sources.
 In addition, these preliminary works deviate from our definition of hybrid FQP-LTQP,
 as they rely solely on Linked Data Document-centric traversal to populate local caches or use decentralized indexes only to optimize
 the Linked Data Document-based traversal process.
-
-\subsection{Hybrid Traversal - Multiple Processes}
-
-The methods in the literature falling within our definition of hybrid FQP-LTQP
+\paragraph{Hybrid Traversal - Multiple Processes:} The methods in the literature falling within our definition of hybrid FQP-LTQP
 use two separate query processes to obtain data from heterogeneous sources.
 First, coherence-aware query processing uses a centralized store to obtain initial query results quickly.
 Using coherence estimation, it determines which data from this store is likely stale.
 The stale data is then discovered and queried using the traversal-based second process during query execution.
 Finally, the results are combined to provide the query answer.
 
-A second approach is a hybrid method that executes a federated query over known SPARQL endpoints concurrently with traversal-based query processing
+A second approach is a hybrid method that executes a federated query over known SPARQL endpoints 
+concurrently with traversal-based query processing
 over URIs~\cite{lynden2013hybrid}.
 While this mitigates the issue of data freshness by querying sources at runtime rather than relying on static indexes,
 it requires the relevant SPARQL endpoints to be configured prior to query execution.
 Consequently, the system cannot utilize new SPARQL endpoints discovered during the traversal process.
-
-\subsection{Hybrid Traversal - Closed Systems}
-
-Other approaches integrate into the dataspace itself. ESPRESSO~\cite{ragab2023espresso} is such an approach;
+\paragraph{Hybrid Traversal - Closed Systems:} Other approaches integrate into the dataspace itself. 
+ESPRESSO~\cite{ragab2023espresso} is such an approach;
 it is a framework around the Solid dataspace specifically that defines several apps in the dataspace to perform certain (optimization) tasks.
 In the Solid environment, data is stored in personal data vaults. These vaults use the Linked Data Platform~\cite{ldp} to arrange the data into a folder-like
 structure.
@@ -219,9 +214,8 @@ Furthermore, currently ESPRESSO only supports distributed keyword-based search, 
 While these approaches do hybrid link traversal, they significantly deviate from our interpretation of hybrid FQP-LTQP.
 This is in contrast to the setting described in this paper where the discovered sources themselves are heterogeneous, serendipitously discovered, 
 and cannot be assumed to be present for every source within the dataspace. 
-
-\subsection{Hybrid Link Traversal over Heterogeneous Sources}
-State-of-the-art LTQP engines, most notably Comunica Link Traversal~\cite{taelman2018comunica, taelman2023link},
+\paragraph{Hybrid Link Traversal over Heterogeneous Sources:} State-of-the-art LTQP engines, 
+most notably Comunica Link Traversal~\cite{taelman2018comunica, taelman2023link},
 demonstrate hybrid capabilities by dynamically federating 
 over discovered SPARQL endpoints, TPF interfaces, and hypermedia documents.
 However, these systems are currently limited by a triple pattern level-only strategy: they fail
@@ -264,26 +258,37 @@ Therefore, Hybrid FQP-LTQP demands novel approaches for exclusive group identifi
 Determining exclusive groups in hybrid link traversal requires comprehensive knowledge of source coverage, specifically information about
 what data is \emph{only} available at a single source. Several research avenues exist to obtain this information.
 
-\paragraph{Discoverable Indexes:} 
-Indexes can be effectively used to catalogue the data sources present in a dataspace.
-These indexes could be deployed as services, similar to approaches like ESPRESSO~\cite{ragab2023espresso}, pointing towards source URIs
-or summary statistics.
-Using indexes to quickly determine relevant sources, LTQP engines can apply FQP techniques 
-to establish exclusive groups and perform source selection.
-This would move the problem from traversal to federation, with new challenges such as index completeness and maintenance.
+\paragraph{Static Prior Knowledge:}
+Query engines can leverage discoverable indexes (e.g., ESPRESSO~\cite{ragab2023espresso}) 
+or local caches to catalogue available sources.
+This prior knowledge allows engines to apply traditional FQP source selection or perform an offline `simulated traversal' 
+to establish exclusive groups, supplementing any gaps with live traversal.
+However, this shifts the primary challenge from live discovery to index maintenance and cache completeness.
+Relying on static knowledge risks producing incorrect exclusive groups;
+missing or stale data, often caused by varying URI reachability~\cite{hartig2012foundations}
+depending on query content, directly compromises result correctness.
 
-\paragraph{Caching:}
-Similar to discoverable indexes, caches provide prior knowledge about the data sources present in a dataspace.
-The query engine can perform a `simulated traversal' offline over the cached data to identify relevant sources.
-Any gaps in this knowledge can then be supplemented by live traversal prior to or during execution
+% \paragraph{Discoverable Indexes:} 
+% Indexes can be effectively used to catalogue the data sources present in a dataspace.
+% These indexes could be deployed as services, similar to approaches like ESPRESSO~\cite{ragab2023espresso}, pointing towards source URIs
+% or summary statistics.
+% Using indexes to quickly determine relevant sources, LTQP engines can apply FQP techniques 
+% to establish exclusive groups and perform source selection.
+% This would move the problem from traversal to federation, with new challenges such as index completeness and maintenance.
 
-The challenge is determining when a cache is ``complete'' for the current query,
-as missing or stale data can affect the correctness of identified exclusive groups.
-For example, if the cached data originates from a different query,
-the cached traversal can differ due to URI reachability~\cite{hartig2012foundations} depending onquery content.
+% \paragraph{Caching:}
+% Similar to discoverable indexes, caches provide prior knowledge about the data sources present in a dataspace.
+% The query engine can perform a `simulated traversal' offline over the cached data to identify relevant sources.
+% Any gaps in this knowledge can then be supplemented by live traversal prior to or during execution
+
+% The challenge is determining when a cache is ``complete'' for the current query,
+% as missing or stale data can affect the correctness of identified exclusive groups.
+% For example, if the cached data originates from a different query,
+% the cached traversal can differ due to URI reachability~\cite{hartig2012foundations} depending onquery content.
 
 \paragraph{Authoritativeness Assumptions:}
-Establishing exclusive groups in a decentralized dataspace could be achieved through the notion of \emph{source authority}~\cite{bogaerts2024distributed}.
+Establishing exclusive groups in a decentralized dataspace could be achieved through 
+the notion of \emph{source authority}~\cite{bogaerts2024distributed,haller2020links,hogan2009scalable}.
 Under standard Link Traversal, any reachable source can assert triples about any subject
 (e.g., a third-party source asserting \texttt{<P1> foaf:knows <P2>}), creating a ``wild west'' of data where 
 no single source can be deemed the exclusive authority for a topic.
@@ -310,15 +315,9 @@ Because the execution plan is already fixed,
 integrating an exclusive group from a newly discovered interface requires dynamically transforming the plan to accommodate the subquery.
 
 \begin{exmp}
-As an example, consider a query plan with the join structure $(T_{1} \Join T_{2}) \Join (T_{3} \Join T_{4})$.
-If the engine discovers an exclusive group consisting of the triple patterns
-\(\{T_{2}, T_{3}\}\), this group cannot be integrated into the plan.
-The plan never produces an intermediate result of the form
-\(T_{2} \Join T_{3}\), since these patterns occur in different subtrees.
-As a result, the exclusive group does not fit into the existing join structure
-and cannot be pushed as a single subquery.
-However, if the plan is reordered to $(T_{2} \Join T_{3}) \Join (T_{1} \Join T_{4})$,
-this group can be integrated, allowing the sub-query \(\{T_{2}, T_{3}\}\) to be sent to the appropriate data sources.
+A static plan with the structure $(T_1 \bowtie T_2) \bowtie (T_3 \bowtie T_4)$
+cannot execute a newly discovered exclusive group $\{T_2, T_3\}$ as a single sub-query, as this join never occurs in the plan.
+To use this exclusive group, the engine must dynamically reorder the plan to $(T_2 \bowtie T_3) \bowtie (T_1 \bowtie T_4)$ at runtime.
 \end{exmp}
 
 \subsubsection{Research Avenues}
@@ -349,11 +348,11 @@ Because these join operators (e.g., Symmetric Hash Joins) accumulate internal st
 the engine is effectively locked into the existing operator instances.
 
 \begin{exmp}
-Consider a query with triple patterns $\{T_1, T_2, T_3, T_4\}$. 
-If an Eddy starts by routing results from $T_1 \bowtie T_2$, the join state is physically stored within that specific operator's hash tables. 
-If the engine later discovers that $T_2 \bowtie T_3$ is more selective due to newly traversed data,
-it can change the routing sequence, but it cannot easily dissolve the $T_1 \bowtie T_2$ state to form a $T_2 \bowtie T_3$ join 
-without significant re-initialization overhead.
+If an Eddy initially evaluates $T_1 \bowtie T_2$, 
+the join accumulates join state within that operator. 
+If newly traversed data reveals $T_2 \bowtie T_3$ is more selective,
+the engine can reroute tuples, but cannot dissolve the $T_1 \bowtie T_2$ state
+to pivot without significant re-initialization overhead.
 \end{exmp}
 
 In contrast, \textbf{SteMs} (State Modules) decouple state from the join operation entirely. 
@@ -367,6 +366,9 @@ While this maximizes flexibility, state migration is a resource-intensive operat
 Determining the optimal threshold for migration, and the number of required migrations to incorporate the diverse precomputed sub-queries discovered
 during traversal is an open challenge.
 
+Because the viability of these algorithms depends heavily on correctly incorporating partial sub-query results,
+future research must evaluate their specific strengths, weaknesses, and overall performance within Hybrid FQP-LTQP.
+
 \subsection{Service Discovery in Hybrid Query Environments}
 
 A fundamental challenge in Hybrid Link Traversal Querying is the gap between resource identifiers in Linked Data documents and the aggregated query services that host them.
@@ -378,11 +380,9 @@ Consequently, a query engine may possess a URI for resource A,
 even though the resource itself is only accessible via a SPARQL endpoint at a different URI\@. 
 Because of this decoupling, the engine cannot rely on the ``follow-your-nose'' principle to dereference resource A directly; 
 it must discover the relevant endpoint instead.
-For example, an engine might encounter the URI \texttt{https://alice.example/posts/1} representing a social media post. 
-Dereferencing this URI directly yields no RDF data. 
-Instead, all data regarding Alice's posts resides exclusively in a SPARQL endpoint located at a different URI,
-such as \texttt{https://alice.example.org/posts/sparql}. 
-Because the resource and endpoint URIs are decoupled, standard link traversal fails to retrieve the data.
+For example, dereferencing https://alice.example/posts/1 might yield no RDF data if 
+all relevant triples reside exclusively in a decoupled SPARQL endpoint at https://alice.example/sparql. 
+Standard traversal fails here.
 
 \subsubsection{Research Avenues}
 Because standard traversal fails when URIs are decoupled from their access interfaces,
@@ -406,9 +406,12 @@ Instead of relying on direct linkage, research can be directed towards the usage
 Unlike linkage-based discovery, this approach treats the mapping between URI namespaces and SPARQL endpoints as a separate knowledge base. 
 Within a dataspace, services such as ESPRESSO~\cite{ragab2023espresso} can aggregate these connections,
 effectively bridging the gap between identifiers and query services.
+
 However, relying on purely centralized indexes is antithetical to the goals of a decentralized dataspace. 
-Consequently, future directions should investigate distributed alternatives, 
-such as Peer-to-Peer (P2P) discovery mechanisms, to prevent the reliance on single points of failure.
+To prevent reliance on single points of failure, 
+future directions should investigate distributed Peer-to-Peer (P2P) discovery.
+Specifically, privacy-supporting Distributed Hash Tables (DHTs)~\cite{roncancio2009data} 
+transfer effectively to this domain by directly mapping URIs to endpoints. 
 
 
 \subsection{Alternative View Deduplication}
@@ -453,6 +456,9 @@ alternative views may only cover specific subsets of data, such as historical ar
 
 \begin{figure}[htbp]
     \centering
+    \scalebox{.7}{
+        
+    }
     \begin{tikzpicture}[node distance=0.8cm and 0.5cm, >=Stealth]
         % Pod Root
         \node (root) [doc, font=\small\bfseries] {/ (Pod Root)};
