@@ -1,0 +1,37 @@
+ - It is not discussed which challenges are closest to being solved 
+ and which are furthest away from a practical solution given the current state of the art.
+  This would help prioritize future research.
+
+- In Challenge 3 the authors mention P2P discovery mechanisms as a promising direction 
+but do not engage with the existing literature on this. 
+Even a brief discussion of why these 
+do or do not transfer to semantic service discovery would have strengthened this section.
+
+
+Actionable Tasks for Camera-Ready Revision
+
+1. Expand Dataspace Challenges
+- Add data governance, specifically policy-based access and usage, as a core challenge for dataspaces.
+- Discuss integrating LTQP in SWS to query catalogs independently from underlying legacy interfaces.
+
+2. Clarify the Tripartite Focus (Figure 1 & General Text)
+- Revise the text around Figure 1 to explicitly emphasize the simultaneous combination of all three paradigms 
+(TPF, SPARQL, and LTQP), rather than just pairs.
+- Detail the distinct caching and freshness challenges when mixing all three. 
+Specifically, contrast the caching needs of LTQP+SPARQL (which relies on crawled indexes)
+ with TPF+SPARQL (which often uses local interfaces).
+
+3. Update References
+- Add citations for URI/Web authoritativeness (DOI: 10.4018/jswis.2009040103 and DOI: 10.1145/3369875)
+ to supplement existing citation [25] on page 4.
+
+4. Broaden Query Planning Discussion (Sections 3.1 & 3.2)
+- Expand the focus beyond exclusive groups identification.
+- Address how to interleave query planning across the combination of SPARQL endpoints, 
+simple LTQP sources, and TPF interfaces.
+- Elaborate on citations [28] (Eddies), [29] (SteMs), and [30] (STAIRs). 
+Explicitly explain how they serve as starting points and identify potential options for combining them.
+
+5. Add Missing Research Direction
+- Include a new discussion on combining caching and P2P networks.
+ Focus on how this combination can distribute computational load in closed dataspaces.

@@ -99,7 +99,7 @@ hybrid FQP-LTQP engines.
 \noindent This paper addresses (\href{https://github.com/w3c-cg/dataspaces/issues/2}{Issue \#2}) of the \href{https://www.w3.org/community/dataspaces/}{W3C Dataspaces Community Group}.
 \section{Introduction} 
 While centralizing data into warehouses or lakes can benefit query engine performance,
-it is antithetical to the core principles of \emph{dataspaces}.
+it is antithetical to the core principles of \emph{linked data-based dataspaces}.
 Dataspaces promote a decentralized ecosystem where data remains at the source, managed by independent participants under agreed-upon governance models.
 This architectural shift introduces significant technical challenges for query engines,
 which must now discover and query data across a vast network of sources,
@@ -135,7 +135,8 @@ We advocate for \emph{Hybrid} FQP-LTQP, which we define as a query execution par
 that advances beyond traditional Linked Data Document-centric traversal.
 It enables query engines to traverse, integrate, and actively leverage 
 the computational capabilities of heterogeneous, expressive data interfaces alongside standard Linked Data Documents.
-Possible examples of such expressive interfaces are SPARQL endpoints and TPF~\cite{verborgh2016triple} (Figure~\ref{fig:main_fig}). 
+Possible examples of such expressive interfaces are SPARQL endpoints and TPF~\cite{verborgh2016triple} (Figure~\ref{fig:main_fig}).
+These examples are not exhaustive, as many more access interface exist and can be used.
 
 \begin{figure}[htp]
   \centering
@@ -482,10 +483,6 @@ alternative views may only cover specific subsets of data, such as historical ar
         % SPARQL Endpoint Icon - Moved to align horizontally with the Pod Root
         \node (sparql) [db, right=3.5cm of root] {SPARQL\\Endpoint};
         
-
-        % ==========================================
-        % TRAVERSAL & DISCOVERY PATH
-        % ==========================================
         
         % Upward traversal indicators (straight, dashed, top-most offset, shortened to prevent clipping)
         \draw[->, red!80!black, thick, dashed, shorten <=2mm, shorten >=2mm, transform canvas={xshift=-0.15cm, yshift=0.15cm}] 
