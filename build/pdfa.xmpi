@@ -72,7 +72,7 @@
    <dc:title><rdf:Alt><rdf:li xml:lang="x-default">Towards Hybrid Link Traversal: Challenges and Research Directions for Heterogeneous Dataspaces</rdf:li></rdf:Alt></dc:title>
    <dc:creator><rdf:Seq><rdf:li>Ruben Eschauzier</rdf:li>
      <rdf:li>Ruben Taelman</rdf:li></rdf:Seq></dc:creator>
-   <dc:rights><rdf:Alt><rdf:li xml:lang="x-default">© 2025 Copyright for this paper by its authors. Use permitted under Creative Commons License Attribution 4.0 International (CC BY 4.0).</rdf:li></rdf:Alt></dc:rights>
+   <dc:rights><rdf:Alt><rdf:li xml:lang="x-default">© 2026 Copyright for this paper by its authors. Use permitted under Creative Commons License Attribution 4.0 International (CC BY 4.0).</rdf:li></rdf:Alt></dc:rights>
    <dc:description><rdf:Alt><rdf:li xml:lang="x-default">Layout by CEURART v0.5.2</rdf:li></rdf:Alt></dc:description>
    <dc:subject><rdf:Bag><rdf:li>Link Traversal-based Query Processing </rdf:li>
      <rdf:li> Hybrid Link Traversal </rdf:li>
@@ -92,18 +92,18 @@
   </rdf:Description> 
   <rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/"> 
    <xmp:CreatorTool>LaTeX with hyperref</xmp:CreatorTool> 
-   <xmp:ModifyDate>2026-04-25T23:21:02+02:00</xmp:ModifyDate> 
-   <xmp:CreateDate>2026-04-25T23:21:02+02:00</xmp:CreateDate> 
-   <xmp:MetadataDate>2026-04-25T23:21:02+02:00</xmp:MetadataDate> 
+   <xmp:ModifyDate>2026-04-26T12:01:36+02:00</xmp:ModifyDate> 
+   <xmp:CreateDate>2026-04-26T12:01:36+02:00</xmp:CreateDate> 
+   <xmp:MetadataDate>2026-04-26T12:01:36+02:00</xmp:MetadataDate> 
   </rdf:Description> 
   <rdf:Description rdf:about="" xmlns:xmpRights = "http://ns.adobe.com/xap/1.0/rights/"> 
    <xmpRights:Marked>True</xmpRights:Marked>
-   <xmpRights:UsageTerms><rdf:Alt><rdf:li xml:lang="x-default">© 2025 Copyright for this paper by its authors. Use permitted under Creative Commons License Attribution 4.0 International (CC BY 4.0).</rdf:li></rdf:Alt></xmpRights:UsageTerms>
+   <xmpRights:UsageTerms><rdf:Alt><rdf:li xml:lang="x-default">© 2026 Copyright for this paper by its authors. Use permitted under Creative Commons License Attribution 4.0 International (CC BY 4.0).</rdf:li></rdf:Alt></xmpRights:UsageTerms>
    <xmpRights:WebStatement>https://creativecommons.org/licenses/by/4.0</xmpRights:WebStatement>
   </rdf:Description> 
   <rdf:Description rdf:about="" xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/"> 
    <xmpMM:DocumentID>uuid:DF005B57-2A06-8753-7167-92D8CE935460</xmpMM:DocumentID> 
-   <xmpMM:InstanceID>uuid:8FCB1181-8A71-C1C9-D924-6C612F97C622</xmpMM:InstanceID> 
+   <xmpMM:InstanceID>uuid:BCF1EA62-C645-8325-1CD6-EFBC50D029BE</xmpMM:InstanceID> 
   </rdf:Description> 
  </rdf:RDF> 
 </x:xmpmeta> 

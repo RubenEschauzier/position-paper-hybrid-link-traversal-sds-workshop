@@ -33,10 +33,10 @@
 
 \begin{document}
 
-\copyrightyear{2025}
+\copyrightyear{2026}
 \copyrightclause{Copyright for this paper by its authors. Use permitted under Creative Commons License Attribution 4.0 International (CC BY 4.0).}
 
-\conference{The Third International Workshop on Semantics in Dataspaces, co-located with the Extended Semantic Web Conference, June 01, 2025, Portorož, Slovenia}
+\conference{The Fourth International Workshop on Semantics in Dataspaces, co-located with the Extended Semantic Web Conference, May 10, 2026, Dubrovnik, Croatia}
 
 \title{Towards Hybrid Link Traversal: Challenges and Research Directions for Heterogeneous Dataspaces}
 
@@ -96,7 +96,7 @@ hybrid FQP-LTQP engines.
 
 %%
 %% Reference a generic issue from the W3C Dataspaces Community Group, as described at https://dbis.rwth-aachen.de/SDS25/#submission. The author(s) must reference an existing issue in the GitHub repository, or add a new one.
-\noindent This paper addresses (\href{https://github.com/w3c-cg/dataspaces/issues/2}{Issue \#2}) of the \href{https://www.w3.org/community/dataspaces/}{W3C Dataspaces Community Group}.
+\noindent This paper addresses \href{https://github.com/w3c-cg/dataspaces/issues/2}{Issue \#2} of the \href{https://www.w3.org/community/dataspaces/}{W3C Dataspaces Community Group}.
 \section{Introduction} 
 While centralizing data into warehouses or lakes can benefit query engine performance,
 it is antithetical to the core principles of \emph{linked data-based dataspaces}.
@@ -168,7 +168,7 @@ In contrast, our work employs a strictly live-traversal process, redefining
 the ``hybrid'' aspect as the traversal over heterogeneous data sources within a single process.
 
 % \subsection{Hybrid Traversal - Local vs Remote}
-\paragraph{Hybrid Traversal - Local vs Remote:} A branch of FQP-LTQP uses precomputed indexes,
+\paragraph{Hybrid Traversal - Local vs Remote} A branch of FQP-LTQP uses precomputed indexes,
 either located within the decentralized environment or computed locally,
 to speed up query execution or source discovery.
 The first of such approaches uses precomputed indexes to rerank sources based on relevance to the query's triple patterns and joins,
@@ -183,9 +183,9 @@ which can quickly go stale for high-velocity data sources.
 In addition, these preliminary works deviate from our definition of hybrid FQP-LTQP,
 as they rely solely on Linked Data Document-centric traversal to populate local caches or use decentralized indexes only to optimize
 the Linked Data Document-based traversal process.
-\paragraph{Hybrid Traversal - Multiple Processes:} The methods in the literature falling within our definition of hybrid FQP-LTQP
+\paragraph{Hybrid Traversal - Multiple Processes} The methods in the literature falling within our definition of hybrid FQP-LTQP
 use two separate query processes to obtain data from heterogeneous sources.
-First, coherence-aware query processing uses a centralized store to obtain initial query results quickly.
+First, coherence-aware query processing~\cite{umbrich2012hybrid} uses a centralized store to obtain initial query results quickly.
 Using coherence estimation, it determines which data from this store is likely stale.
 The stale data is then discovered and queried using the traversal-based second process during query execution.
 Finally, the results are combined to provide the query answer.
@@ -196,7 +196,7 @@ over URIs~\cite{lynden2013hybrid}.
 While this mitigates the issue of data freshness by querying sources at runtime rather than relying on static indexes,
 it requires the relevant SPARQL endpoints to be configured prior to query execution.
 Consequently, the system cannot utilize new SPARQL endpoints discovered during the traversal process.
-\paragraph{Hybrid Traversal - Closed Systems:} Other approaches integrate into the dataspace itself. 
+\paragraph{Hybrid Traversal - Closed Systems} Other approaches integrate into the dataspace itself. 
 ESPRESSO~\cite{ragab2023espresso} is such an approach;
 it is a framework around the Solid dataspace specifically that defines several apps in the dataspace to perform certain (optimization) tasks.
 In the Solid environment, data is stored in personal data vaults. These vaults use the Linked Data Platform~\cite{ldp} to arrange the data into a folder-like
@@ -214,7 +214,7 @@ Furthermore, currently ESPRESSO only supports distributed keyword-based search, 
 While these approaches do hybrid link traversal, they significantly deviate from our interpretation of hybrid FQP-LTQP.
 This is in contrast to the setting described in this paper where the discovered sources themselves are heterogeneous, serendipitously discovered, 
 and cannot be assumed to be present for every source within the dataspace. 
-\paragraph{Hybrid Link Traversal over Heterogeneous Sources:} State-of-the-art LTQP engines, 
+\paragraph{Hybrid Link Traversal over Heterogeneous Sources} State-of-the-art LTQP engines, 
 most notably Comunica Link Traversal~\cite{taelman2018comunica, taelman2023link},
 demonstrate hybrid capabilities by dynamically federating 
 over discovered SPARQL endpoints, TPF interfaces, and hypermedia documents.
@@ -258,7 +258,7 @@ Therefore, Hybrid FQP-LTQP demands novel approaches for exclusive group identifi
 Determining exclusive groups in hybrid link traversal requires comprehensive knowledge of source coverage, specifically information about
 what data is \emph{only} available at a single source. Several research avenues exist to obtain this information.
 
-\paragraph{Static Prior Knowledge:}
+\paragraph{Static Prior Knowledge}
 Query engines can leverage discoverable indexes (e.g., ESPRESSO~\cite{ragab2023espresso}) 
 or local caches to catalogue available sources.
 This prior knowledge allows engines to apply traditional FQP source selection or perform an offline `simulated traversal' 
@@ -286,7 +286,7 @@ depending on query content, directly compromises result correctness.
 % For example, if the cached data originates from a different query,
 % the cached traversal can differ due to URI reachability~\cite{hartig2012foundations} depending onquery content.
 
-\paragraph{Authoritativeness Assumptions:}
+\paragraph{Authoritativeness Assumptions}
 Establishing exclusive groups in a decentralized dataspace could be achieved through 
 the notion of \emph{source authority}~\cite{bogaerts2024distributed,haller2020links,hogan2009scalable}.
 Under standard Link Traversal, any reachable source can assert triples about any subject
@@ -298,8 +298,8 @@ further optimizations.
 Applying this principle, a potential solution restricts the scope of validity, assuming a data source acts as the \emph{sole authority}
 for triples where the subject corresponds to the source's own URI (or a URI within its controlled namespace).
 By enforcing this \emph{Subject Authority Constraint}, the query engine can 
-statically determine that all triples matching \texttt{<SourceA/posts/post1> ?p ?o} reside exclusively at \emph{Source A}
-\footnote{This includes fragments of the URI}.
+statically determine that all triples matching \texttt{<SourceA/posts/post1> ?p ?o} reside exclusively at \emph{Source A}.
+\footnote{This includes fragments of the URI.}
 This allows the engine to safely treat such patterns as an exclusive group, 
 enabling the delegation of complex sub-queries (e.g., BGPs) to hybrid sources like SPARQL endpoints without the risk of incomplete results.
 
@@ -395,13 +395,13 @@ This approach relies on extending the ``follow-your-nose'' principle to include 
 Existing methods such as the Vocabulary of Interlinked Datasets (VoID) can embed pointers directly in the RDF data. 
 For instance, a triple taking the form $\langle r, \texttt{void:sparqlEndpoint}, s \rangle$ allows a traversal engine to immediately identify
 that the resource $r$ is queryable via the endpoint $s$. 
-However, this relies on adoption of this approach while, for example, currently only 33\% percent of endpoints
+However, this relies on adoption of this approach while, for example, currently only 33\% of endpoints
 expose VoID descriptions~\cite{buil2013sparql}.
 Furthermore, generating individual triples for every term may be infeasible.
 Methods should therefore be investigated to simplify these statements, such as using regex patterns to define what types of resources are constrained
 in the endpoint.
 
-\paragraph{Service Registries and Indexing.}
+\paragraph{Service Registries and Indexing}
 Instead of relying on direct linkage, research can be directed towards the usage of external service registries and catalogs. 
 Unlike linkage-based discovery, this approach treats the mapping between URI namespaces and SPARQL endpoints as a separate knowledge base. 
 Within a dataspace, services such as ESPRESSO~\cite{ragab2023espresso} can aggregate these connections,

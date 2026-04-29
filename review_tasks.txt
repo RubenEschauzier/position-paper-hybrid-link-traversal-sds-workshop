@@ -1,7 +1,0 @@
-3. The Missing Citations
-
-    The Reviewer's Point: Missing context on URI/Web authoritativeness.
-
-    Why it's a Must: It takes up almost zero space in the main text (just adding \cite{...}) and instantly satisfies a direct reviewer request.
-
-    Action: Add DOI: 10.4018/jswis.2009040103 and DOI: 10.1145/3369875 next to your existing citation [25].
